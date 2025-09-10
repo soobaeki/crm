@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model shipping_address {
+  id              Int       @id @default(autoincrement())
+  order_id        Int
+  recipient_name  String?   @db.VarChar(20)
+  recipient_phone String?   @db.VarChar(20)
+  address_line1   String?   @db.VarChar(2000)
+  address_line2   String?   @db.VarChar(2000)
+  city            String?   @db.VarChar(200)
+  postal_code     String?   @db.VarChar(200)
+  country         String?   @db.VarChar(200)
+  created_at      DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([order_id], map: "order_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model orders {
+  id           Int           @id @default(autoincrement())
+  customer_id  Int
+  order_date   DateTime?     @db.Date
+  orderer_name String?       @db.VarChar(100)
+  total_amount Int?          @default(0)
+  status       String?       @default("PENDING") @db.VarChar(32)
+  created_at   DateTime      @default(now()) @db.DateTime(0)
+  updated_at   DateTime?     @db.DateTime(0)
+  order_items  order_items[]
+  customer     customers     @relation(fields: [customer_id], references: [id], onUpdate: Restrict, map: "fk_orders_customer_id")
+
+  @@index([customer_id], map: "customer_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_requests {
+  id          Int       @id @default(autoincrement())
+  customer_id Int
+  content     String?   @db.Text
+  created_at  DateTime? @default(now()) @db.DateTime(0)
+  customers   customers @relation(fields: [customer_id], references: [id], onUpdate: Restrict, map: "fk_customer_request_customer_id")
+
+  @@index([customer_id], map: "fk_customer_request_customer_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customers {
+  id                Int                 @id @default(autoincrement())
+  customer_name     String              @db.VarChar(50)
+  nick_name         String?             @db.VarChar(50)
+  home_phone        String?             @db.VarChar(50)
+  mobile_phone      String              @unique(map: "mobile_phone") @db.VarChar(50)
+  address           String?             @db.VarChar(2000)
+  created_at        DateTime?           @default(now()) @db.DateTime(0)
+  customer_requests customer_requests[]
+  orders            orders[]
+}
+
+model order_items {
+  id                    Int       @id @default(autoincrement())
+  order_id              Int
+  product_id            Int?
+  product_name_snapshot String    @db.VarChar(255)
+  unit_price_snapshot   Int
+  quantity              Int
+  line_total            Int
+  discount              Int?      @default(0)
+  tax                   Int?      @default(0)
+  created_at            DateTime  @default(now()) @db.DateTime(0)
+  orders                orders    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "order_items_ibfk_1")
+  products              products? @relation(fields: [product_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "order_items_ibfk_2")
+
+  @@index([order_id], map: "order_id")
+  @@index([product_id], map: "product_id")
+}
+
+model products {
+  id             Int           @id @default(autoincrement())
+  sku            String?       @unique(map: "sku") @db.VarChar(64)
+  name           String        @db.VarChar(255)
+  description    String?       @db.Text
+  price          Int
+  currency       String?       @default("KRW") @db.VarChar(3)
+  stock_quantity Int?          @default(0)
+  is_active      Boolean?      @default(true)
+  created_at     DateTime      @default(now()) @db.DateTime(0)
+  updated_at     DateTime?     @db.DateTime(0)
+  order_items    order_items[]
+}
