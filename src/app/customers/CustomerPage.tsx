@@ -1,22 +1,26 @@
 "use client";
 
 import React, { useState } from "react";
-import { Customer } from "@/types/customer";
-import CustomerModal from "./CustomerModel";
-import CustomersClient from "./CustomersClient";
 import { useQuery } from "@tanstack/react-query";
+import { Customer } from "@/types/customer";
+import ViewBody from "@/components/commons/ViewContainer";
+import ViewContainer from "@/components/commons/ViewContainer";
+import ViewTitle from "@/components/commons/ViewTitle";
+import CustomerForm from "@/components/customers/CustomerForm";
+import CustomerList from "@/components/customers/CustomerList";
 import { getCustomers } from "@/lib/customers/customer.api";
+import CustomerModal from "./CustomerModel";
 
 export default function CustomerPage() {
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
-  );
   const [filters, setFilters] = useState({
     startDate: "",
     // startDate: dayjs().format("YYYY-MM-DD"),
     endDate: "",
     searchText: "",
   });
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
 
   const { data: customers = [], refetch } = useQuery<Customer[]>({
     queryKey: ["customers", filters.startDate, filters.endDate],
@@ -52,21 +56,27 @@ export default function CustomerPage() {
     }
   };
 
+  console.log("selectedCustomer", selectedCustomer);
+
   return (
-    <div className="flex w-full flex-col overflow-auto px-4 py-4 sm:px-6 lg:px-8">
-      <h2 className="px-4 text-xl font-bold">가입고객리스트</h2>
-      <CustomersClient
-        customers={filteredCustomers}
-        filters={filters} // 현재 필터 상태 전달
-        onChangeFilter={handleFilterChange} // 필터 변경 콜백
-        onSelectCustomer={setSelectedCustomer}
-      />
-      {selectedCustomer && (
-        <CustomerModal
-          customer={selectedCustomer}
-          onClose={() => setSelectedCustomer(null)}
+    <ViewContainer>
+      {/* 제목 */}
+      <ViewTitle>가입고객리스트</ViewTitle>
+
+      {/* 본문 */}
+      <ViewBody>
+        <CustomerForm onChangeFilter={handleFilterChange} />
+        <CustomerList
+          customers={filteredCustomers}
+          onSelectCustomer={setSelectedCustomer}
         />
-      )}
-    </div>
+      </ViewBody>
+
+      {/* 모달은 selectedCustomer 존재 여부로 열림/닫힘 결정 */}
+      <CustomerModal
+        customer={selectedCustomer}
+        onClose={() => setSelectedCustomer(null)}
+      />
+    </ViewContainer>
   );
 }

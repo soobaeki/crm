@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { parseExcel } from "@/api/excel/upload/parser";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

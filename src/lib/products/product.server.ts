@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import type { products } from "@prisma/client";
 import { ProductFormInput } from "@/types/product";
+import { prisma } from "@/lib/prisma";
 import { getCurrentTimestamp, getStockKeepingUnit } from "@/utils/generator";
 
 export const Currency = {

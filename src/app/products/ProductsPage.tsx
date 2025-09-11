@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getProducts } from "@/lib/products/product.api";
 import { Product } from "@/types/product";
-import ProductsClient from "./ProductsClient";
+import { getProducts } from "@/lib/products/product.api";
 import ProductModal from "./ProductModal";
+import ProductsClient from "./ProductsClient";
 
 export default function ProductsPage() {
   const { data: products = [], refetch } = useQuery<Product[]>({

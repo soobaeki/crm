@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { ParsedOrderRow, PRODUCT_COLUMNS } from "@/types/excel";
+import { PRODUCT_COLUMNS, ParsedOrderRow } from "@/types/excel";
 
 export async function parseExcel(
   buffer: ArrayBuffer,

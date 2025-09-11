@@ -1,6 +1,6 @@
 import React from "react";
-import { downloadExcelFile } from "@/utils/excel";
 import { RowData } from "@/types/row-data";
+import { downloadExcelFile } from "@/utils/excel";
 
 interface Props {
   data: RowData[];

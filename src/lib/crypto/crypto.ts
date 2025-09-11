@@ -1,5 +1,5 @@
-import { isAes256Cipher } from "@/utils/crypto";
 import CryptoJS from "crypto-js";
+import { isAes256Cipher } from "@/utils/crypto";
 
 // 랜덤 32바이트 (256비트) 키 생성
 // const randomKey CryptoJS.lib.WordArray.random(32);

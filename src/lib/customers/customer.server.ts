@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
-import type { customers, Prisma } from "@prisma/client";
+import type { Prisma, customers } from "@prisma/client";
 import { Customer, CustomerFormInput } from "@/types/customer";
 import { encrypt } from "@/lib/crypto/crypto";
+import { prisma } from "@/lib/prisma";
 import { safeDecrypt } from "@/utils/crypto";
 
 // GET 메서드: 고객 목록 조회

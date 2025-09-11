@@ -5,12 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bars3Icon,
-  XMarkIcon,
-  HomeIcon,
-  UsersIcon,
   ChartBarIcon,
-  UserCircleIcon,
   CubeIcon,
+  HomeIcon,
+  UserCircleIcon,
+  UsersIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 const user = {

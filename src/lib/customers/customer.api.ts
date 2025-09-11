@@ -1,6 +1,6 @@
 // [클라이언트 화면] <--> [lib/customer/api.client.ts (fetch 함수)] <--> [app/api/customer/route.ts (API 핸들러)] <--> [lib/customer/customer.server.ts (DB 함수)]
-import { callApi } from "@/lib/core";
 import { Customer, CustomerFormInput } from "@/types/customer";
+import { callApi } from "@/lib/core";
 
 export async function getCustomers(
   startDate?: string,

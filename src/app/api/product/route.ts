@@ -1,9 +1,9 @@
+import { NextResponse } from "next/server";
 import {
   getProducts,
   postProduct,
   updateProduct,
 } from "@/lib/products/product.server";
-import { NextResponse } from "next/server";
 
 // GET: 상품 목록 조회
 export async function GET() {

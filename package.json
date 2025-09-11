@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "patch-package",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -29,14 +30,17 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/crypto-js": "^4.2.2",
     "@types/dotenv": "^6.1.1",
     "@types/jest": "^30.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.1",
-    "eslint": "^9.32.0",
+    "eslint": "^9.35.0",
     "eslint-config-next": "15.3.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "jest": "^30.0.5",
     "patch-package": "^8.0.0",

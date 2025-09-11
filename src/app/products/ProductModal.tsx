@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { postProduct } from "@/lib/products/product.api";
 import { Product } from "@/types/product";
+import { postProduct } from "@/lib/products/product.api";
 
 const FIELD_KEYS = {
   productName: "name",

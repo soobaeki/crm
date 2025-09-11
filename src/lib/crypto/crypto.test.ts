@@ -1,5 +1,6 @@
-import { encrypt, decrypt } from "../crypto/crypto";
 import dotenv from "dotenv";
+import { decrypt, encrypt } from "../crypto/crypto";
+
 dotenv.config();
 
 test("암호화-복호화 테스트", () => {
