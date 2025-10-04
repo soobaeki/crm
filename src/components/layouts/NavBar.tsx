@@ -7,6 +7,7 @@ import {
   Bars3Icon,
   ChartBarIcon,
   CubeIcon,
+  DocumentIcon,
   HomeIcon,
   UserCircleIcon,
   UsersIcon,
@@ -23,6 +24,7 @@ const navigation = [
   { name: "Customers", href: "/customers", icon: UsersIcon },
   { name: "Analytics", href: "/analytics", icon: ChartBarIcon },
   { name: "Products", href: "/products", icon: CubeIcon },
+  { name: "Excel", href: "/admin", icon: DocumentIcon },
 ];
 
 const userNavigation = [

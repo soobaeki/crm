@@ -1,29 +1,69 @@
 import ExcelJS from "exceljs";
 import Papa from "papaparse";
-import { RowData } from "@/types/row-data";
+import { RowData } from "@/types/excel";
+
+// 헤더 → RowData 키 매핑
+const headerMap: Record<string, keyof RowData> = {
+  순번: "id",
+  주문일자: "orderDate",
+  품목: "item",
+  무게: "weight",
+  수량: "quantity",
+  주소: "address",
+  집전화: "homePhone",
+  휴대전화: "mobilePhone",
+  주문자: "customerName",
+  입금액: "paymentAmount",
+  입금일: "paymentDate",
+  입금자: "payer",
+  특이사항: "notes",
+};
+
+// 숫자 변환이 필요한 필드
+const numberFields: (keyof RowData)[] = [
+  "id",
+  "weight",
+  "quantity",
+  "paymentAmount",
+];
 
 /**
- * CSV 파일을 읽어서 JSON 배열로 변환
+ * CSV 파일 읽기
  */
-function readCsvFile(file: File): Promise<RowData[]> {
+export async function readCsvFile(file: File): Promise<RowData[]> {
   return new Promise((resolve, reject) => {
-    Papa.parse<RowData>(file, {
+    Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        resolve(results.data);
+        const mapped = results.data.map((row) => {
+          const rowData: Partial<RowData> = {};
+
+          for (const [header, value] of Object.entries(row)) {
+            const key = headerMap[header];
+            if (key) {
+              if (numberFields.includes(key)) {
+                (rowData as any)[key] = value ? Number(value) : null;
+              } else {
+                (rowData as any)[key] = value || null;
+              }
+            }
+          }
+
+          return rowData as RowData;
+        });
+
+        resolve(mapped);
       },
-      error: (error) => {
-        reject(error);
-      },
+      error: (error) => reject(error),
     });
   });
 }
 
 /**
- * 엑셀(xls, xlsx) 파일을 읽어서 JSON 배열로 변환
+ * Excel 파일 읽기
  */
-async function readExcelFile(file: File): Promise<RowData[]> {
+export async function readExcelFile(file: File): Promise<RowData[]> {
   const workbook = new ExcelJS.Workbook();
   const arrayBuffer = await file.arrayBuffer();
   await workbook.xlsx.load(arrayBuffer);
@@ -32,29 +72,51 @@ async function readExcelFile(file: File): Promise<RowData[]> {
   if (!worksheet) throw new Error("No worksheet found");
 
   const rows: RowData[] = [];
-  const headers: string[] = [];
+  let headers: string[] = [];
 
   worksheet.eachRow((row, rowNumber) => {
+    const valuesArray = Array.isArray(row.values) ? row.values : [];
+
     if (rowNumber === 1) {
-      row.eachCell((cell) => {
-        headers.push(cell.text);
-      });
+      headers = valuesArray
+        .slice(1)
+        .map((v, idx) =>
+          v !== undefined && v !== null ? String(v) : `column${idx + 1}`,
+        );
     } else {
-      const rowData: RowData = {};
-      row.eachCell((cell, colNumber) => {
-        // cell.value 타입이 여러가지이므로 string | number | null | undefined로 맞춰줌
-        let value = cell.value;
-        if (typeof value === "object" && value !== null && "text" in value) {
-          // Hyperlink or rich text 일 때 .text로 변환
-          value = value.text;
+      const rowData: Partial<RowData> = {};
+
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        let value: string | number | null = null;
+
+        if (cell.value === null || cell.value === undefined) {
+          value = null;
+        } else if (typeof cell.value === "string") {
+          value = cell.value;
+        } else if (typeof cell.value === "number") {
+          value = cell.value;
+        } else if (cell.value instanceof Date) {
+          value = cell.value.toISOString().split("T")[0];
+        } else if (
+          typeof cell.value === "object" &&
+          "text" in cell.value &&
+          typeof (cell.value as { text: string }).text === "string"
+        ) {
+          value = (cell.value as { text: string }).text;
         }
-        rowData[headers[colNumber - 1]] = value as
-          | string
-          | number
-          | null
-          | undefined;
+
+        const header = headers[colNumber - 1] ?? `column${colNumber}`;
+        const key = headerMap[header];
+        if (key) {
+          if (numberFields.includes(key)) {
+            (rowData as any)[key] = value ? Number(value) : null;
+          } else {
+            (rowData as any)[key] = value || null;
+          }
+        }
       });
-      rows.push(rowData);
+
+      rows.push(rowData as RowData);
     }
   });
 
@@ -62,51 +124,13 @@ async function readExcelFile(file: File): Promise<RowData[]> {
 }
 
 /**
- * 파일 타입에 따라 csv / excel 분기해서 JSON 배열로 읽기
+ * 파일 타입에 따라 CSV/Excel을 구분해서 읽기
  */
 export async function readFile(file: File): Promise<RowData[]> {
   const ext = file.name.split(".").pop()?.toLowerCase();
 
-  if (ext === "csv") {
-    return readCsvFile(file);
-  } else if (ext === "xls" || ext === "xlsx") {
-    return readExcelFile(file);
-  } else {
-    throw new Error("Unsupported file format");
-  }
-}
+  if (ext === "csv") return readCsvFile(file);
+  if (ext === "xls" || ext === "xlsx") return readExcelFile(file);
 
-/**
- * JSON 배열 데이터를 엑셀 파일로 다운로드
- */
-export async function downloadExcelFile(
-  data: RowData[],
-  filename = "export.xlsx",
-) {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Sheet1");
-
-  if (data.length === 0) {
-    worksheet.addRow(["No Data"]);
-  } else {
-    worksheet.addRow(Object.keys(data[0]));
-    data.forEach((item) => {
-      worksheet.addRow(Object.values(item));
-    });
-  }
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(url);
+  throw new Error("Unsupported file format");
 }

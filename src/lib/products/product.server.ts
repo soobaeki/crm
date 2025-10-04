@@ -21,7 +21,7 @@ export async function postProduct(data: ProductFormInput) {
     data: {
       sku: getStockKeepingUnit(),
       name,
-      description,
+      weight,
       price,
       currency: Currency.KRW,
       stock_quantity: stockQuantity,
@@ -39,7 +39,7 @@ export async function updateProduct(data: ProductFormInput) {
     where: { sku: sku },
     data: {
       name,
-      description,
+      weight,
       price,
       currency,
       stock_quantity: stockQuantity,

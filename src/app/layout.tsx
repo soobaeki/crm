@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import NavBar from "../components/layouts/NavBar";
 import Providers from "./Providers";
-import NavBar from "./commons/NavBar";
 
 // 폰트 설정
 const geistSans = Geist({

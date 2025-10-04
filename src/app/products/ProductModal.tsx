@@ -49,7 +49,7 @@ export default function ProductModal({
     id: product?.id || 0,
     sku: product?.sku || "",
     name: product?.name || "",
-    description: product?.description || "",
+    weight: product?.weight || 0,
     price: product?.price || 0,
     currency: product?.currency || "KRW",
     stockQuantity: product?.stockQuantity || 0,

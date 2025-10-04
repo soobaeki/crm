@@ -1,13 +1,6 @@
-// components/common/SearchFilter.tsx
 "use client";
 
 import React, { ChangeEvent } from "react";
-
-// components/common/SearchFilter.tsx
-
-// components/common/SearchFilter.tsx
-
-// components/common/SearchFilter.tsx
 
 interface FilterValues {
   startDate: string;
