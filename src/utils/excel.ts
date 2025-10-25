@@ -134,3 +134,46 @@ export async function readFile(file: File): Promise<RowData[]> {
 
   throw new Error("Unsupported file format");
 }
+
+/**
+ * 브라우저에서 Excel 파일 다운로드
+ * @param data 다운로드할 RowData 배열
+ * @param label 헤더 레이블 매핑 (RowData key → 한글/표시명)
+ */
+export async function downloadExcel(
+  data: RowData[],
+  label: Record<keyof RowData, string>,
+) {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Sheet1");
+
+  // 헤더 설정
+  const headers = Object.keys(label).map((key) => ({
+    header: label[key as keyof RowData],
+    key,
+  }));
+  sheet.columns = headers;
+
+  // 데이터 추가
+  data.forEach((row) => sheet.addRow(row));
+
+  // 파일명에 날짜 추가
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const filename = `excel_file_${y}${m}${d}.xlsx`;
+
+  // 브라우저 다운로드
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

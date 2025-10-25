@@ -1,4 +1,5 @@
 import { RowData } from "@/types/excel";
+import { IExcelSearchFilter } from "@/types/filter";
 import { prisma } from "@/lib/prisma";
 
 export async function postUploadExcelServer(rows: RowData[]) {
@@ -92,5 +93,81 @@ export async function postUploadExcelServer(rows: RowData[]) {
         });
       }
     }
+  });
+}
+
+export async function getSearchExcelListServer(params: IExcelSearchFilter) {
+  return await prisma.$transaction(async (tx) => {
+    const orders = await tx.orders.findMany({
+      where: {
+        AND: [
+          params.startDate
+            ? { order_date: { gte: new Date(params.startDate) } }
+            : {},
+          params.endDate
+            ? { order_date: { lte: new Date(params.endDate) } }
+            : {},
+          params.searchText
+            ? {
+                OR: [
+                  {
+                    customer: {
+                      customer_name: { contains: params.searchText },
+                    },
+                  },
+                  { customer: { nick_name: { contains: params.searchText } } },
+                  { orderer_name: { contains: params.searchText } },
+                  { customer: { address: { contains: params.searchText } } },
+                ],
+              }
+            : {},
+          params.item
+            ? {
+                order_items: {
+                  some: { product_name_snapshot: { contains: params.item } },
+                },
+              }
+            : {},
+          params.weight
+            ? {
+                order_items: {
+                  some: { products: { weight: params.weight } },
+                },
+              }
+            : {},
+        ],
+      },
+      include: {
+        customer: true,
+        order_items: { include: { products: true } },
+      },
+    });
+
+    // order_items별로 RowData 생성
+    const rowData: RowData[] = [];
+
+    orders.forEach((order) => {
+      order.order_items.forEach((item) => {
+        rowData.push({
+          id: order.id,
+          orderDate: order.order_date?.toISOString().split("T")[0] ?? null,
+          item: item.product_name_snapshot,
+          weight: item.products?.weight ?? null,
+          quantity: item.quantity,
+          address: order.customer.address,
+          homePhone: order.customer.home_phone,
+          mobilePhone: order.customer.mobile_phone,
+          customerName: order.customer.customer_name,
+          paymentAmount: order.total_amount,
+          paymentDate:
+            order.updated_at?.toISOString().split("T")[0] ??
+            new Date().toISOString().split("T")[0],
+          payer: order.customer.nick_name,
+          notes: order.customer.address,
+        });
+      });
+    });
+
+    return rowData;
   });
 }

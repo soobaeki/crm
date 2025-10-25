@@ -2,50 +2,24 @@
 
 import { useState } from "react";
 import { Product } from "@/types/product";
-import { postProduct } from "@/lib/products/product.api";
-
-const FIELD_KEYS = {
-  productName: "name",
-  productDescription: "description",
-  productPrice: "price",
-  productCurrency: "currency",
-  productStockQuantity: "stockQuantity",
-  productIsActive: "isActive",
-} as const;
-
-const FIELD_LABELS = {
-  [FIELD_KEYS.productName]: "상품명",
-  [FIELD_KEYS.productDescription]: "설명",
-  [FIELD_KEYS.productPrice]: "가격",
-  [FIELD_KEYS.productCurrency]: "통화",
-  [FIELD_KEYS.productStockQuantity]: "수량",
-  [FIELD_KEYS.productIsActive]: "판매 중 여부",
-};
-
-const FIELD_TYPES = {
-  [FIELD_KEYS.productName]: "text",
-  [FIELD_KEYS.productDescription]: "textarea",
-  [FIELD_KEYS.productPrice]: "number",
-  [FIELD_KEYS.productCurrency]: "text",
-  [FIELD_KEYS.productStockQuantity]: "number",
-  [FIELD_KEYS.productIsActive]: "checkbox",
-};
+import Modal from "@/components/commons/Modal";
 
 interface IProps {
   product?: Product;
-  isNew?: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onDelete: (id: number) => void;
+  onConfirm: (data: Product, isNew: boolean) => void;
 }
 
 export default function ProductModal({
   product,
-  isNew = false,
   onClose,
-  onSave,
+  onDelete,
+  onConfirm,
 }: IProps) {
-  // 초기값 없으면 기본값 세팅 (빈 문자열 또는 false 등)
-  const initialProduct: Product = {
+  const isNew = !product?.id;
+
+  const [form, setForm] = useState<Product>({
     id: product?.id || 0,
     sku: product?.sku || "",
     name: product?.name || "",
@@ -56,114 +30,131 @@ export default function ProductModal({
     isActive: product?.isActive ?? true,
     createdAt: product?.createdAt,
     updatedAt: product?.updatedAt,
-  };
+  });
 
-  const [newProduct, setNewProduct] = useState<Product>(initialProduct);
-
-  // 필드별 onChange 핸들러 (checkbox는 checked 사용)
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const target = e.target;
-
-    if (target instanceof HTMLInputElement) {
-      const { name, type, value, checked } = target;
-      setNewProduct((prev) => ({
-        ...prev,
-        [name]:
-          type === "checkbox"
-            ? checked
-            : type === "number"
-              ? Number(value)
-              : value,
-      }));
-    } else if (
-      target instanceof HTMLTextAreaElement ||
-      target instanceof HTMLSelectElement
-    ) {
-      const { name, value } = target;
-      setNewProduct((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    const { name, type, value, checked } = e.target as HTMLInputElement;
+    setForm((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "number"
+            ? Number(value)
+            : value,
+    }));
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (isNew) {
-        await postProduct(newProduct);
-      } else {
-        // updateProduct 같은 함수 호출 필요 (구현 별도)
-        // await updateProduct(newProduct.id, newProduct);
-      }
-      onSave();
-    } catch (error) {
-      console.log("error", error);
-      alert("저장 실패");
+  const handleConfirm = () => {
+    if (!form.name.trim()) {
+      alert("상품명을 입력해주세요.");
+      return;
     }
-  };
 
-  // fields 배열 생성
-  const fields = Object.values(FIELD_KEYS).map((name) => ({
-    name,
-    label: FIELD_LABELS[name],
-    type: FIELD_TYPES[name],
-  }));
+    if (form.price <= 0) {
+      alert("가격은 0보다 커야 합니다.");
+      return;
+    }
+
+    onConfirm(form, isNew);
+  };
 
   return (
-    <div className="modal">
-      <h2>{isNew ? "상품 등록" : "상품 수정"}</h2>
+    <Modal
+      type="product"
+      isOpen={true}
+      title={isNew ? "상품 등록" : "상품 수정"}
+      onClose={onClose}
+      onDelete={() => onDelete(form.id)}
+      onConfirm={handleConfirm}
+      deleteLabel="삭제"
+      confirmLabel={isNew ? "등록" : "수정"}
+    >
+      {/* flex-col gap-4로 전체 간격 확대, p-4로 모달 내부 패딩 추가 */}
+      <div className="flex flex-col gap-4 p-4">
+        {/* 상품명 필드 그룹 */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="name"
+            className="mb-1 text-sm font-medium text-gray-700"
+          >
+            상품명
+          </label>
+          <input
+            id="name" // label의 htmlFor와 연결하기 위해 id 추가
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            type="text"
+            // 기본 폼 스타일: border, rounded, padding, focus 시 스타일
+            className="rounded-md border border-gray-300 p-2 transition duration-150 ease-in-out focus:border-blue-500 focus:ring-blue-500"
+            placeholder="상품명을 입력하세요"
+          />
+        </div>
 
-      {fields.map(({ name, label, type }) => {
-        if (type === "textarea") {
-          return (
-            <div key={name}>
-              <label>{label}</label>
-              <textarea
-                name={name}
-                placeholder={label}
-                value={(newProduct[name] as string) || ""}
-                onChange={handleChange}
-              />
-            </div>
-          );
-        }
-        if (type === "checkbox") {
-          return (
-            <div key={name}>
-              <label>
-                <input
-                  checked={Boolean(newProduct[name])}
-                  name={name}
-                  type="checkbox"
-                  onChange={handleChange}
-                />
-                {label}
-              </label>
-            </div>
-          );
-        }
-        return (
-          <div key={name}>
-            <label>{label}</label>
+        {/* 가격 필드 그룹 */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="price"
+            className="mb-1 text-sm font-medium text-gray-700"
+          >
+            가격
+          </label>
+          <input
+            id="price"
+            name="price"
+            value={form.price}
+            onChange={handleChange}
+            type="number"
+            className="rounded-md border border-gray-300 p-2 transition duration-150 ease-in-out focus:border-blue-500 focus:placeholder-transparent focus:ring-blue-500"
+            // placeholder="0"
+            // min="0"
+          />
+        </div>
+
+        {/* 재고 수량 필드 그룹 */}
+        <div className="flex flex-col">
+          <label
+            htmlFor="stockQuantity"
+            className="mb-1 text-sm font-medium text-gray-700"
+          >
+            재고 수량
+          </label>
+          <input
+            id="stockQuantity"
+            name="stockQuantity"
+            value={form.stockQuantity}
+            onChange={handleChange}
+            type="number"
+            className="rounded-md border border-gray-300 p-2 transition duration-150 ease-in-out focus:border-blue-500 focus:ring-blue-500"
+            // placeholder="0"
+            // min="0"
+          />
+        </div>
+
+        {/* 판매 중 여부 체크박스 그룹 */}
+        <div className="flex items-center pt-2">
+          <label
+            htmlFor="isActive"
+            className="flex cursor-pointer items-center"
+          >
             <input
-              name={name}
-              placeholder={label}
-              type={type}
-              value={(newProduct[name] as string) ?? ""}
+              id="isActive"
+              name="isActive"
+              type="checkbox"
+              checked={form.isActive}
               onChange={handleChange}
+              // 기본 appearance를 숨기고 custom 스타일링을 위해 w-4 h-4 rounded-sm border-gray-300 적용
+              className="form-checkbox mr-2 h-4 w-4 rounded border-gray-300 text-blue-600"
             />
-          </div>
-        );
-      })}
-
-      <div className="modal-actions">
-        <button onClick={onClose}>취소</button>
-        <button onClick={handleSubmit}>{isNew ? "등록" : "저장"}</button>
+            <span className="text-base text-gray-700 select-none">
+              판매 중 여부
+            </span>
+          </label>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -11,9 +11,10 @@ export default function CustomerModal({
   onClose,
 }: CustomerModalProps) {
   if (!customer) return null;
-  console.log("customer", customer);
+
   return (
     <Modal
+      type="customer"
       isOpen={!!customer}
       title={`${customer.customerName} 고객 세부정보`}
       onClose={onClose}

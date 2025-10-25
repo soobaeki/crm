@@ -1,28 +1,28 @@
 "use client";
 
-import { ChangeEvent } from "react";
+import React, { ChangeEvent } from "react";
+import { RowData } from "@/types/excel";
+import { IExcelSearchFilter } from "@/types/filter";
 
-interface IFilterValues {
-  startDate: string;
-  endDate: string;
-  searchText: string;
-}
-
-interface IProps {
-  type: "customer" | "product" | "excel";
-  filters: IFilterValues;
-  onChange: (filters: IFilterValues) => void;
+interface Props {
+  filters: IExcelSearchFilter;
+  onChange: (filters: IExcelSearchFilter) => void;
   onSearch: () => void;
-  onRegister?: () => void;
+  handleUpload: () => void;
+  handleDownload: () => void;
+  uploading: boolean;
+  data: RowData[];
 }
 
-export default function SearchFilter({
-  type,
+export default function ExcelSearchFilter({
   filters,
   onChange,
   onSearch,
-  onRegister,
-}: IProps) {
+  handleUpload,
+  handleDownload,
+  uploading,
+  data,
+}: Props) {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     onChange({ ...filters, [name]: value });
@@ -65,9 +65,8 @@ export default function SearchFilter({
         />
       </div>
 
-      {/* 버튼 */}
-      <div className="flex justify-end gap-2 md:ml-auto">
-        {/* 조회 버튼 */}
+      {/* 조회 버튼 */}
+      <div className="flex justify-end md:ml-auto">
         <button
           className="cursor-pointer rounded bg-blue-600 px-4 py-1 text-sm text-white"
           onClick={onSearch}
@@ -75,15 +74,22 @@ export default function SearchFilter({
           조회
         </button>
 
-        {/* 상품 등록 버튼 */}
-        {type === "product" && (
-          <button
-            className="cursor-pointer rounded bg-blue-600 px-4 py-1 text-sm text-white"
-            onClick={onRegister}
-          >
-            상품 등록
-          </button>
-        )}
+        {/* 업로드 버튼 */}
+        <button
+          onClick={handleUpload}
+          className="rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
+        >
+          {uploading ? "업로드 중..." : "업로드"}
+        </button>
+
+        {/* 다운로드 버튼 */}
+        <button
+          onClick={handleDownload}
+          disabled={data.length === 0}
+          className="rounded bg-green-500 px-4 py-2 text-white disabled:opacity-50"
+        >
+          다운로드
+        </button>
       </div>
     </section>
   );

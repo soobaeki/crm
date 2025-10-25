@@ -1,6 +1,6 @@
 export async function callApi<TReq = unknown>(
   url: string,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+  method: "GET" | "POST" | "PUT" | "DELETE",
   body?: TReq,
 ): Promise<Response> {
   const res = await fetch(url, {

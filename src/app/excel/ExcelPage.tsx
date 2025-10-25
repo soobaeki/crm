@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { RowData } from "@/types/excel";
+import { IExcelSearchFilter } from "@/types/filter";
 import ViewBody from "@/components/commons/ViewBody";
 import ViewContainer from "@/components/commons/ViewContainer";
 import ViewTitle from "@/components/commons/ViewTitle";
-import { postUploadExcelApi } from "@/lib/excel/excel.api";
-import { readFile } from "@/utils/excel";
+import ExcelSearchFilter from "@/components/excels/ExcelSearchFilter";
+import {
+  getSearchExcelListApi,
+  postUploadExcelApi,
+} from "@/lib/excel/excel.api";
+import { downloadExcel } from "@/utils/excel";
 
 // RowData 키 → 한글 레이블 매핑
 const rowDataLabels: Record<keyof RowData, string> = {
@@ -37,8 +42,13 @@ export const columns: { key: keyof RowData; label: string }[] = (
 export default function ExcelPage() {
   const [data, setData] = useState<RowData[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const queryClient = useQueryClient();
+  const [searchFilter, setSearchFilter] = useState<IExcelSearchFilter>({
+    startDate: "",
+    endDate: "",
+    searchText: "",
+    item: "",
+    weight: 0,
+  });
 
   const mutation = useMutation({
     mutationFn: (rows: RowData[]) => postUploadExcelApi(rows),
@@ -52,58 +62,56 @@ export default function ExcelPage() {
     },
   });
 
-  // 업로드 중 체크
-  const uploading = mutation.status === "pending";
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    const file = e.target.files[0];
-
-    setLoading(true);
+  // 검색 핸들러
+  const handleSearch = async () => {
     try {
-      const result = await readFile(file);
-      setData(result);
+      setLoading(true);
+      const result = await getSearchExcelListApi(searchFilter); // POST로 서버 호출
+      setData(result); // 결과를 테이블에 세팅
     } catch (err) {
       console.error(err);
-      alert("파일 읽기 실패");
+      alert("검색 실패");
     } finally {
       setLoading(false);
     }
   };
+
+  // 업로드 중 체크
+  const uploading = mutation.status === "pending";
 
   const handleUpload = () => {
     if (data.length === 0) return alert("업로드할 데이터가 없습니다.");
     mutation.mutate(data); // mutation 호출
   };
 
+  const handleDownload = () => {
+    if (data.length === 0) return alert("다운로드할 데이터가 없습니다.");
+    downloadExcel(data, rowDataLabels);
+  };
+
   return (
     <ViewContainer>
+      {/* 제목 */}
       <ViewTitle>Excel 관리</ViewTitle>
 
-      {/* 파일 업로드 */}
-      <div>
-        <input
-          type="file"
-          accept=".csv,.xls,.xlsx"
-          onChange={handleFileChange}
-          className="border p-2 rounded"
-        />
-        {/* DB 업로드 버튼 */}
-        <button
-          onClick={handleUpload}
-          disabled={data.length === 0 || uploading}
-          className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          {uploading ? "업로드 중..." : "DB에 업로드"}
-        </button>
-      </div>
-
-      {/* 로딩 표시 */}
-      {loading && <p className="text-gray-500">파일을 읽는 중입니다...</p>}
+      {/* 본문 */}
       <ViewBody>
-        {/* 데이터 테이블 */}
-        {data.length > 0 ? (
-          <div className="overflow-x-auto border rounded">
+        {/* 조회 영역 */}
+        <ExcelSearchFilter
+          filters={searchFilter}
+          onChange={setSearchFilter}
+          onSearch={handleSearch}
+          handleUpload={handleUpload}
+          handleDownload={handleDownload}
+          uploading={uploading}
+          data={data}
+        />
+
+        {/* 리스트 영역 */}
+        {loading ? (
+          <p className="text-gray-500">데이터 불러오는 중...</p>
+        ) : data.length > 0 ? (
+          <div className="overflow-x-auto rounded border">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">
                 <tr>
@@ -134,9 +142,7 @@ export default function ExcelPage() {
             </table>
           </div>
         ) : (
-          !loading && (
-            <p className="text-gray-500">업로드된 데이터가 없습니다.</p>
-          )
+          <p className="text-gray-500">데이터가 없습니다.</p>
         )}
       </ViewBody>
     </ViewContainer>

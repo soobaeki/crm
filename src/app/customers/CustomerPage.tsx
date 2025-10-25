@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Customer } from "@/types/customer";
-import ViewBody from "@/components/commons/ViewContainer";
-import ViewContainer from "@/components/commons/ViewContainer";
+import {
+  default as ViewBody,
+  default as ViewContainer,
+} from "@/components/commons/ViewContainer";
 import ViewTitle from "@/components/commons/ViewTitle";
 import CustomerForm from "@/components/customers/CustomerForm";
 import CustomerList from "@/components/customers/CustomerList";
@@ -42,7 +44,7 @@ export default function CustomerPage() {
   });
 
   // 페이지에서 필터 변경 시
-  const handleFilterChange = async (newFilters: Partial<typeof filters>) => {
+  const handleSearchFilter = async (newFilters: Partial<typeof filters>) => {
     const updatedFilters = { ...filters, ...newFilters };
 
     setFilters(updatedFilters);
@@ -56,8 +58,6 @@ export default function CustomerPage() {
     }
   };
 
-  console.log("selectedCustomer", selectedCustomer);
-
   return (
     <ViewContainer>
       {/* 제목 */}
@@ -65,7 +65,7 @@ export default function CustomerPage() {
 
       {/* 본문 */}
       <ViewBody>
-        <CustomerForm onChangeFilter={handleFilterChange} />
+        <CustomerForm onSearchFilter={handleSearchFilter} />
         <CustomerList
           customers={filteredCustomers}
           onSelectCustomer={setSelectedCustomer}

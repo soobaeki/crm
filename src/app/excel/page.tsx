@@ -1,5 +1,5 @@
 import React from "react";
-import ExcelPage from "./excel";
+import ExcelPage from "./ExcelPage";
 
 function page() {
   return <ExcelPage />;

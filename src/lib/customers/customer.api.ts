@@ -20,8 +20,6 @@ export async function getCustomers(
 export async function postCustomer(data: CustomerFormInput): Promise<Customer> {
   const res = await callApi("/api/customer", "POST", data);
 
-  if (!res.ok) {
-    throw new Error("고객 등록 실패");
-  }
-  return res.json(); // 생성된 고객 데이터 반환
+  if (!res.ok) throw new Error("고객 등록 실패");
+  return res.json();
 }

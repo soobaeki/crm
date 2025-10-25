@@ -9,11 +9,12 @@ export async function getCustomers(
   startDate?: string,
   endDate?: string,
 ): Promise<Customer[]> {
-  const where: Prisma.customersWhereInput = {};
-  where.created_at = {};
-
-  if (startDate) where.created_at.gte = new Date(startDate);
-  if (endDate) where.created_at.lte = new Date(endDate);
+  const where: Prisma.customersWhereInput = {
+    created_at: {
+      ...(startDate ? { gte: new Date(startDate) } : {}),
+      ...(endDate ? { lte: new Date(endDate) } : {}),
+    },
+  };
 
   const customers: customers[] = await prisma.customers.findMany({ where });
 

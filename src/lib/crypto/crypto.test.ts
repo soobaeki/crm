@@ -1,7 +1,5 @@
-import crypto from "crypto";
 import dotenv from "dotenv";
 import { decryptGCM, encryptGCM } from "@/lib/crypto/crypto";
-import { decrypt, encrypt } from "@/lib/crypto/crypto";
 
 dotenv.config();
 
@@ -26,13 +24,11 @@ test("GCM 테스트 with ENV KEY", () => {
 
   // 암호화
   const encrypted = encryptGCM(secret, key, 1);
-  console.log("encrypted:", encrypted);
 
   // 복호화
   const decrypted = decryptGCM(encrypted, (version) =>
     version === 1 ? key : null,
   );
-  console.log("decrypted:", decrypted);
 
   expect(decrypted).toBe(secret);
 });

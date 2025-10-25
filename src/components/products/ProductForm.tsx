@@ -9,9 +9,10 @@ interface IProps {
     endDate: string;
     searchText: string;
   }) => void;
+  onOpenModal: () => void;
 }
 
-export default function CustomerForm({ onSearchFilter }: IProps) {
+export default function ProductForm({ onSearchFilter, onOpenModal }: IProps) {
   const [changeFilters, setChangeFilters] = useState({
     startDate: "",
     endDate: "",
@@ -20,10 +21,11 @@ export default function CustomerForm({ onSearchFilter }: IProps) {
 
   return (
     <SearchFilter
-      type="customer"
+      type="product"
       filters={changeFilters}
       onChange={setChangeFilters}
       onSearch={() => onSearchFilter(changeFilters)}
+      onRegister={onOpenModal}
     />
   );
 }

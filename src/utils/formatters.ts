@@ -24,3 +24,13 @@ export const yyyymmddToDashed = (yyyymmdd: string) => {
 export const dashedToYyyymmdd = (dashedDate: string) => {
   return dayjs(dashedDate, "YYYY-MM-DD").format("YYYYMMDD");
 };
+
+// XXXXX -> XX,XXX
+export function formatNumber(
+  value: number | string | undefined | null,
+): string {
+  if (value == null || value === "") return "-"; // 값 없으면 "-" 표시
+  const num = typeof value === "number" ? value : Number(value);
+  if (isNaN(num)) return "-"; // 숫자로 변환 불가면 "-"
+  return num.toLocaleString("ko-KR");
+}
