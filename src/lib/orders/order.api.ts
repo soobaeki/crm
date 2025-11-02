@@ -44,3 +44,10 @@ export async function deleteOrder(orderId: number) {
   if (!res.ok) throw new Error("주문 삭제 실패");
   return res.json();
 }
+
+export async function getTodaysOrdersCustomers() {
+  const res = await callApi("api/order/actions/today", "GET");
+
+  if (!res.ok) throw new Error("오늘자 주문고객 조회 실패");
+  return res.json();
+}

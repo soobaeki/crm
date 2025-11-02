@@ -125,3 +125,60 @@ export async function deleteOrderWithItems(orderId: number) {
     return deletedOrder;
   });
 }
+
+// GET: 오늘 주문한 고객
+export async function getTodaysOrdersCustomers() {
+  const now = new Date();
+
+  const startOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+
+  const orders = await prisma.orders.findMany({
+    where: {
+      order_date: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+    include: {
+      customer: true,
+      order_items: {
+        select: {
+          product_name_snapshot: true,
+          unit_price_snapshot: true,
+          quantity: true,
+          line_total: true,
+        },
+      },
+    },
+  });
+
+  const result = orders.flatMap((order) =>
+    order.order_items.map((item) => ({
+      customerName: order.customer.customer_name,
+      address: order.customer.address,
+      orderDate: order.order_date?.toLocaleDateString("ko-KR"),
+      productName: item.product_name_snapshot,
+      quantity: item.quantity,
+      totalPrice: item.quantity * item.unit_price_snapshot,
+    })),
+  );
+
+  return result;
+}

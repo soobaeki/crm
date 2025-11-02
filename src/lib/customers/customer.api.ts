@@ -23,3 +23,24 @@ export async function postCustomer(data: CustomerFormInput): Promise<Customer> {
   if (!res.ok) throw new Error("고객 등록 실패");
   return res.json();
 }
+
+export async function getCustomerStats() {
+  const res = await callApi("/api/customer/actions/stats", "GET");
+
+  if (!res.ok) throw new Error("고객 수 조회 실패");
+  return res.json();
+}
+
+export async function getRegionCustomerCounts() {
+  const res = await callApi("/api/customer/actions/region-count", "GET");
+
+  if (!res.ok) throw new Error("지역별 고객 수 조회 실패");
+  return res.json();
+}
+
+export async function getCustomerIssues() {
+  const res = await callApi("/api/customer/actions/issue", "GET");
+
+  if (!res.ok) throw new Error("고객 주의사항 조회 실패");
+  return res.json();
+}

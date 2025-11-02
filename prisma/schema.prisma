@@ -41,11 +41,16 @@ model orders {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model customer_requests {
-  id          Int       @id @default(autoincrement())
-  customer_id Int
-  content     String?   @db.Text
-  created_at  DateTime? @default(now()) @db.DateTime(0)
-  customers   customers @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_request_customer_id")
+  id           Int                         @id @default(autoincrement())
+  customer_id  Int
+  content      String?                     @db.Text
+  created_at   DateTime?                   @default(now()) @db.DateTime(0)
+  status       customer_requests_status?   @default(pending)
+  priority     customer_requests_priority? @default(normal)
+  handled_by   Int?
+  handled_at   DateTime?                   @db.DateTime(0)
+  handler_note String?                     @db.Text
+  customers    customers                   @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_request_customer_id")
 
   @@index([customer_id], map: "fk_customer_request_customer_id")
 }
@@ -93,4 +98,17 @@ model products {
   created_at     DateTime      @default(now()) @db.DateTime(0)
   updated_at     DateTime?     @default(now()) @db.DateTime(0)
   order_items    order_items[]
+}
+
+enum customer_requests_status {
+  pending
+  in_progress
+  done
+  rejected
+}
+
+enum customer_requests_priority {
+  low
+  normal
+  high
 }
