@@ -1,5 +1,8 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,6 +11,7 @@ import {
   CubeIcon,
   DocumentIcon,
   HomeIcon,
+  ShieldExclamationIcon,
   UserCircleIcon,
   UsersIcon,
   XMarkIcon,
@@ -22,7 +26,8 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
   { name: "Customers", href: "/customers", icon: UsersIcon },
   { name: "Products", href: "/products", icon: CubeIcon },
-  { name: "Excel", href: "/admin", icon: DocumentIcon },
+  { name: "Excel", href: "/excel", icon: DocumentIcon },
+  { name: "Admin", href: "/admin", icon: ShieldExclamationIcon },
 ];
 
 const userNavigation = [
@@ -35,10 +40,19 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+//////////////////////
+// component start
+//////////////////////
 export default function NavBar() {
+  //////////////////////
+  // data
+  //////////////////////
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <div>
       {/* 모바일 토글 버튼 */}

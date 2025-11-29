@@ -1,17 +1,46 @@
+"use client";
+
+//////////////////////
+// import
+//////////////////////
+import React from "react";
 import { Customer } from "@/types/customer";
 import Modal from "@/components/commons/Modal";
 
-interface CustomerModalProps {
+//////////////////////
+// types / interfaces
+//////////////////////
+interface IProps {
   customer: Customer | null;
   onClose: () => void;
 }
 
-export default function CustomerModal({
-  customer,
-  onClose,
-}: CustomerModalProps) {
+//////////////////////
+// component start
+//////////////////////
+export default function CustomerModal({ customer, onClose }: IProps) {
   if (!customer) return null;
 
+  //////////////////////
+  // data
+  //////////////////////
+  const fields = [
+    ["고객명", customer.customerName],
+    ["닉네임", customer.nickName || "-"],
+    ["전화번호", customer.homePhone || "-"],
+    ["휴대전화번호", customer.mobilePhone],
+    ["주소", customer.address || "-"],
+    [
+      "가입일",
+      customer.createdAt
+        ? new Date(customer.createdAt).toLocaleDateString()
+        : "-",
+    ],
+  ];
+
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <Modal
       type="customer"
@@ -21,23 +50,12 @@ export default function CustomerModal({
     >
       {/* 여기 내용만 교체 가능 */}
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-[15px] leading-6 text-gray-700">
-        <dt className="font-semibold text-gray-600">고객명</dt>
-        <dd>{customer.customerName}</dd>
-
-        <dt className="font-semibold text-gray-600">닉네임</dt>
-        <dd>{customer.nickName || "-"}</dd>
-
-        <dt className="font-semibold text-gray-600">전화번호</dt>
-        <dd>{customer.homePhone || "-"}</dd>
-
-        <dt className="font-semibold text-gray-600">휴대전화번호</dt>
-        <dd>{customer.mobilePhone}</dd>
-
-        <dt className="font-semibold text-gray-600">주소</dt>
-        <dd className="break-words">{customer.address || "-"}</dd>
-
-        <dt className="font-semibold text-gray-600">가입일</dt>
-        <dd>{new Date(customer.createdAt).toLocaleDateString()}</dd>
+        {fields.map(([label, value]) => (
+          <React.Fragment key={label}>
+            <dt className="font-semibold text-gray-600">{label}</dt>
+            <dd>{value}</dd>
+          </React.Fragment>
+        ))}
       </dl>
     </Modal>
   );

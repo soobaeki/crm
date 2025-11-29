@@ -1,8 +1,5 @@
-import React from "react";
 import ExcelPage from "./ExcelPage";
 
-function page() {
+export default function Page() {
   return <ExcelPage />;
 }
-
-export default page;

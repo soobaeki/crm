@@ -1,5 +1,5 @@
 import CustomerPage from "./CustomerPage";
 
-export default function page() {
+export default function Page() {
   return <CustomerPage />;
 }

@@ -1,14 +1,26 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import { Customer } from "@/types/customer";
 import { formatPhone } from "@/utils/formatters";
 
+//////////////////////
+// types / interfaces
+//////////////////////
 interface IProps {
   customers: Customer[];
   onSelectCustomer: (customer: Customer) => void;
 }
 
+//////////////////////
+// component start
+//////////////////////
 export default function CustomerList({ customers, onSelectCustomer }: IProps) {
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <>
       {/* 결과 테이블 */}

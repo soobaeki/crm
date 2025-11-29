@@ -1,10 +1,16 @@
 "use client";
 
-import React, { ChangeEvent } from "react";
+//////////////////////
+// import
+//////////////////////
+import { ChangeEvent } from "react";
 import { RowData } from "@/types/excel";
 import { IExcelSearchFilter } from "@/types/filter";
 
-interface Props {
+//////////////////////
+// types / interfaces
+//////////////////////
+interface IProps {
   filters: IExcelSearchFilter;
   onChange: (filters: IExcelSearchFilter) => void;
   onSearch: () => void;
@@ -14,6 +20,9 @@ interface Props {
   data: RowData[];
 }
 
+//////////////////////
+// component start
+//////////////////////
 export default function ExcelSearchFilter({
   filters,
   onChange,
@@ -22,12 +31,18 @@ export default function ExcelSearchFilter({
   handleDownload,
   uploading,
   data,
-}: Props) {
+}: IProps) {
+  //////////////////////
+  // handler
+  //////////////////////
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     onChange({ ...filters, [name]: value });
   };
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <section className="mb-4 flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:gap-3">
       {/* 기간 검색 */}

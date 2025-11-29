@@ -1,9 +1,15 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import { useState } from "react";
 import { Product } from "@/types/product";
 import Modal from "@/components/commons/Modal";
 
+//////////////////////
+// types / interfaces
+//////////////////////
 interface IProps {
   product?: Product;
   onClose: () => void;
@@ -11,6 +17,9 @@ interface IProps {
   onConfirm: (data: Product, isNew: boolean) => void;
 }
 
+//////////////////////
+// component start
+//////////////////////
 export default function ProductModal({
   product,
   onClose,
@@ -19,6 +28,9 @@ export default function ProductModal({
 }: IProps) {
   const isNew = !product?.id;
 
+  //////////////////////
+  // data
+  //////////////////////
   const [form, setForm] = useState<Product>({
     id: product?.id || 0,
     sku: product?.sku || "",

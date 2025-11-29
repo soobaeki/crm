@@ -1,5 +1,5 @@
-import ProductsPage from "./ProductsPage";
+import ProductPage from "./ProductPage";
 
-export default function page() {
-  return <ProductsPage />;
+export default function Page() {
+  return <ProductPage />;
 }

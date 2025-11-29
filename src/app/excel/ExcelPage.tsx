@@ -1,5 +1,8 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { RowData } from "@/types/excel";
@@ -14,7 +17,9 @@ import {
 } from "@/lib/excel/excel.api";
 import { downloadExcel } from "@/utils/excel";
 
+//////////////////////
 // RowData 키 → 한글 레이블 매핑
+//////////////////////
 const rowDataLabels: Record<keyof RowData, string> = {
   id: "순번",
   orderDate: "주문일자",
@@ -31,7 +36,9 @@ const rowDataLabels: Record<keyof RowData, string> = {
   notes: "특이사항",
 };
 
-// 자동으로 columns 생성
+//////////////////////
+// 자동 columns 생성
+//////////////////////
 export const columns: { key: keyof RowData; label: string }[] = (
   Object.keys(rowDataLabels) as (keyof RowData)[]
 ).map((key) => ({
@@ -39,7 +46,13 @@ export const columns: { key: keyof RowData; label: string }[] = (
   label: rowDataLabels[key],
 }));
 
+//////////////////////
+// component start
+//////////////////////
 export default function ExcelPage() {
+  //////////////////////
+  // state & router & query
+  //////////////////////
   const [data, setData] = useState<RowData[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchFilter, setSearchFilter] = useState<IExcelSearchFilter>({
@@ -62,7 +75,9 @@ export default function ExcelPage() {
     },
   });
 
-  // 검색 핸들러
+  //////////////////////
+  // handlers (useCallback)
+  //////////////////////
   const handleSearch = async () => {
     try {
       setLoading(true);
@@ -89,6 +104,9 @@ export default function ExcelPage() {
     downloadExcel(data, rowDataLabels);
   };
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <ViewContainer>
       {/* 제목 */}

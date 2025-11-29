@@ -1,5 +1,5 @@
 import DashBoardPage from "./DashBoardPage";
 
-export default function page() {
+export default function Page() {
   return <DashBoardPage />;
 }

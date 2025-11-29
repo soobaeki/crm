@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+//////////////////////
+// import
+//////////////////////
+import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@/types/product";
 import ViewBody from "@/components/commons/ViewBody";
@@ -16,7 +19,13 @@ import {
 } from "@/lib/products/product.api";
 import ProductModal from "./ProductModal";
 
-export default function ProductsPage() {
+//////////////////////
+// component start
+//////////////////////
+export default function ProductPage() {
+  //////////////////////
+  // state & router & query
+  //////////////////////
   const [filters, setFilters] = useState({
     startDate: "",
     // startDate: dayjs().format("YYYY-MM-DD"),
@@ -37,35 +46,49 @@ export default function ProductsPage() {
       getProducts(filters.startDate, filters.endDate, filters.searchText),
   });
 
-  // 페이지에서 필터 변경 시
-  const handleSearchFilter = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-  };
+  //////////////////////
+  // handlers (useCallback)
+  //////////////////////
+  const handleSearchFilter = useCallback(
+    (newFilters: Partial<typeof filters>) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+    },
+    [filters],
+  );
 
-  const handleOpenModal = (product?: Product) => {
+  const handleOpenModal = useCallback((product?: Product) => {
     setSelectedProduct(product ?? null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedProduct(null);
-  };
+  }, []);
 
-  const handleDeleteProduct = async (id: number) => {
-    if (confirm("정말 삭제하시겠습니까?")) {
-      await deleteProduct(id);
+  const handleDeleteProduct = useCallback(
+    async (id: number) => {
+      if (confirm("정말 삭제하시겠습니까?")) {
+        await deleteProduct(id);
+        handleCloseModal();
+        await refetch();
+      }
+    },
+    [handleCloseModal, refetch],
+  );
+
+  const handleConfirmProduct = useCallback(
+    async (data: Product, isNew: boolean) => {
+      isNew ? await postProduct(data) : await putProduct(data);
       handleCloseModal();
       await refetch();
-    }
-  };
+    },
+    [handleCloseModal, refetch],
+  );
 
-  const handleConfirmProduct = async (data: Product, isNew: boolean) => {
-    isNew ? await postProduct(data) : await putProduct(data);
-    await refetch();
-    handleCloseModal();
-  };
-
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <ViewContainer>
       {/* 제목 */}

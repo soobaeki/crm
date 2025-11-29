@@ -1,6 +1,14 @@
+"use client";
+
+//////////////////////
+// import
+//////////////////////
 import { Product } from "@/types/product";
 import { formatNumber } from "@/utils/formatters";
 
+//////////////////////
+// types / interfaces
+//////////////////////
 interface IProps {
   products: Product[];
   onSelectProduct: (products: Product) => void;
@@ -20,10 +28,19 @@ const columnLabels: Record<keyof Product, string> = {
   updatedAt: "수정일",
 };
 
+//////////////////////
+// component start
+//////////////////////
 export default function ProductList({ products, onSelectProduct }: IProps) {
+  //////////////////////
+  // data
+  //////////////////////
   // column 순서 고정
   const columns = Object.keys(columnLabels) as (keyof Product)[];
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <div className="overflow-x-auto rounded border">
       <table className="min-w-full table-auto border-collapse border border-gray-300">

@@ -1,8 +1,8 @@
 import { Prisma, customers } from "@prisma/client/edge";
 import { Customer, CustomerFormInput } from "@/types/customer";
-import { encrypt } from "@/lib/crypto/crypto";
 import { prisma } from "@/lib/prisma";
-import { safeDecrypt } from "@/utils/crypto";
+import { safeDecryptGCM } from "@/utils/crypto";
+import { encryptGCM } from "../crypto/crypto";
 
 // GET 메서드: 고객 목록 조회
 export async function getCustomers(
@@ -21,10 +21,10 @@ export async function getCustomers(
   // 복호화 처리
   return customers.map((customer) => ({
     id: customer.id,
-    customerName: safeDecrypt(customer.customer_name) ?? "",
+    customerName: safeDecryptGCM(customer.customer_name) ?? "",
     nickName: customer.nick_name ?? "",
-    homePhone: safeDecrypt(customer.home_phone) ?? "",
-    mobilePhone: safeDecrypt(customer.mobile_phone) ?? "",
+    homePhone: safeDecryptGCM(customer.home_phone) ?? "",
+    mobilePhone: safeDecryptGCM(customer.mobile_phone) ?? "",
     address: customer.address ?? "",
     createdAt: customer.created_at?.toISOString() ?? "",
   }));
@@ -35,10 +35,7 @@ export async function postCustomer(data: CustomerFormInput) {
   const { customerName, homePhone, mobilePhone, address } = data;
   return await prisma.customers.create({
     data: {
-      customer_name: encrypt(
-        customerName,
-        process.env.ENCRYPT_SECRET_KEY ?? "",
-      ),
+      customer_name: encryptGCM(customerName),
       nick_name: customerName,
       home_phone: homePhone,
       // home_phone: encrypt(homePhone, process.env.ENCRYPT_SECRET_KEY ?? ""),

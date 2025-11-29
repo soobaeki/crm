@@ -1,7 +1,13 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import React from "react";
 
+//////////////////////
+// types / interfaces
+//////////////////////
 interface Irops {
   type: "product" | "customer";
   isOpen: boolean;
@@ -31,11 +37,17 @@ export default function Modal({
 }: Irops) {
   if (!isOpen) return null;
 
+  //////////////////////
+  // data
+  //////////////////////
   const MODAL_CONTAINER_CLASSES: Record<"product" | "customer", string> = {
     customer: "h-full max-w-7xl",
     product: "max-w-lg",
   };
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <div className="bg-opacity-0.5 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
       <div

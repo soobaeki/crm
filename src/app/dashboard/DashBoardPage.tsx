@@ -1,5 +1,8 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import { useQuery } from "@tanstack/react-query";
 import {
   ArcElement,
@@ -37,7 +40,13 @@ ChartJS.register(
   Legend,
 );
 
+//////////////////////
+// component start
+//////////////////////
 export default function DashBoardPage() {
+  //////////////////////
+  // state & router & query
+  //////////////////////
   const { data: customerStats, isLoading } = useQuery<{
     total: number;
     recent30Days: number;
@@ -81,6 +90,9 @@ export default function DashBoardPage() {
     queryFn: getCustomerIssues,
   });
 
+  ////////////////////////
+  // variable
+  ////////////////////////
   const barRegionData = {
     labels: regionCounts?.map((rc) => rc.region) ?? [],
     datasets: [
@@ -114,6 +126,9 @@ export default function DashBoardPage() {
 
   if (isLoading) return <p>Loading...</p>;
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <ViewContainer>
       {/* 제목 */}

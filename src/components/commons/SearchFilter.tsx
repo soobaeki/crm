@@ -1,7 +1,13 @@
 "use client";
 
+//////////////////////
+// import
+//////////////////////
 import { ChangeEvent } from "react";
 
+//////////////////////
+// types / interfaces
+//////////////////////
 interface IFilterValues {
   startDate: string;
   endDate: string;
@@ -16,6 +22,9 @@ interface IProps {
   onRegister?: () => void;
 }
 
+//////////////////////
+// component start
+//////////////////////
 export default function SearchFilter({
   type,
   filters,
@@ -23,11 +32,17 @@ export default function SearchFilter({
   onSearch,
   onRegister,
 }: IProps) {
+  //////////////////////
+  // handlers
+  //////////////////////
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     onChange({ ...filters, [name]: value });
   };
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <section className="mb-4 flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:gap-3">
       {/* 기간 검색 */}

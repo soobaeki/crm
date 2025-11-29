@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+//////////////////////
+// import
+//////////////////////
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Customer } from "@/types/customer";
 import {
@@ -13,7 +16,13 @@ import CustomerList from "@/components/customers/CustomerList";
 import { getCustomers } from "@/lib/customers/customer.api";
 import CustomerModal from "./CustomerModel";
 
+//////////////////////
+// component start
+//////////////////////
 export default function CustomerPage() {
+  //////////////////////
+  // state & router & query
+  //////////////////////
   const [filters, setFilters] = useState({
     startDate: "",
     // startDate: dayjs().format("YYYY-MM-DD"),
@@ -29,35 +38,43 @@ export default function CustomerPage() {
     queryFn: () => getCustomers(filters.startDate, filters.endDate),
   });
 
-  // 클라이언트 필터링
-  const filteredCustomers = customers.filter((c) => {
+  //////////////////////
+  // derived data (useMemo)
+  //////////////////////
+  const filteredCustomers = useMemo(() => {
     const searchText = filters.searchText?.replace(/\s/g, "").toLowerCase();
-    if (!searchText) return true; // 검색어 없으면 모두 통과
+    if (!searchText) return customers;
 
-    return [
-      c.customerName,
-      c.nickName,
-      c.mobilePhone,
-      c.homePhone,
-      c.address,
-    ].some((field) => field?.toLowerCase().includes(searchText));
-  });
+    return customers.filter((c) =>
+      [c.customerName, c.nickName, c.mobilePhone, c.homePhone, c.address].some(
+        (field) => field?.toLowerCase().includes(searchText),
+      ),
+    );
+  }, [customers, filters.searchText]);
 
-  // 페이지에서 필터 변경 시
-  const handleSearchFilter = async (newFilters: Partial<typeof filters>) => {
-    const updatedFilters = { ...filters, ...newFilters };
+  //////////////////////
+  // handlers (useCallback)
+  //////////////////////
+  const handleSearchFilter = useCallback(
+    async (newFilters: Partial<typeof filters>) => {
+      const updatedFilters = { ...filters, ...newFilters };
 
-    setFilters(updatedFilters);
+      setFilters(updatedFilters);
 
-    // 기간 필터가 바뀌면 서버에서 새로 조회
-    if (
-      newFilters.startDate !== undefined ||
-      newFilters.endDate !== undefined
-    ) {
-      await refetch();
-    }
-  };
+      // 기간 필터가 바뀌면 서버에서 새로 조회
+      if (
+        newFilters.startDate !== undefined ||
+        newFilters.endDate !== undefined
+      ) {
+        await refetch();
+      }
+    },
+    [filters, refetch],
+  );
 
+  //////////////////////
+  // render (JSX)
+  //////////////////////
   return (
     <ViewContainer>
       {/* 제목 */}
