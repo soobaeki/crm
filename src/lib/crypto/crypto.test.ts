@@ -3,6 +3,23 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+test("Generated Base64 GCM Key", () => {
+  const key = randomBytes(32);
+
+  // key가 Buffer인지 확인
+  expect(Buffer.isBuffer(key)).toBe(true);
+
+  // 길이가 32바이트인지 확인
+  expect(key.length).toBe(32);
+
+  // Base64 변환 가능 확인
+  const keyBase64 = key.toString("base64");
+  expect(typeof keyBase64).toBe("string");
+  expect(keyBase64.length).toBeGreaterThan(0);
+
+  console.log("Generated Base64 GCM Key:", keyBase64);
+});
+
 // test("암호화-복호화 테스트", () => {
 //   const plain = "홍길동";
 //   const encrypted = encrypt(plain, process.env.ENCRYPT_SECRET_KEY ?? "");
@@ -32,20 +49,3 @@ dotenv.config();
 
 //   expect(decrypted).toBe(secret);
 // });
-
-test("Generated Base64 GCM Key", () => {
-  const key = randomBytes(32);
-
-  // key가 Buffer인지 확인
-  expect(Buffer.isBuffer(key)).toBe(true);
-
-  // 길이가 32바이트인지 확인
-  expect(key.length).toBe(32);
-
-  // Base64 변환 가능 확인
-  const keyBase64 = key.toString("base64");
-  expect(typeof keyBase64).toBe("string");
-  expect(keyBase64.length).toBeGreaterThan(0);
-
-  console.log("Generated Base64 GCM Key:", keyBase64);
-});

@@ -1,16 +1,33 @@
-import { NextResponse } from "next/server";
-import { getTodaysOrdersCustomers } from "@/lib/orders/order.server";
+import { NextRequest, NextResponse } from "next/server";
+import { ApiResponse } from "@/lib/core";
+import { getTodaysOrdersCustomers } from "@/lib/order/order.server";
 
-// 오늘 주문한 고객
-export async function GET() {
+/**
+ * 오늘 주문한 고객 목록 조회
+ *
+ * @param request
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const result = await getTodaysOrdersCustomers();
-    return NextResponse.json(result, { status: 200 });
+    const todayOrderCustomers = await getTodaysOrdersCustomers();
+
+    const response: ApiResponse<typeof todayOrderCustomers> = {
+      success: true,
+      message: "오늘 주문한 고객 목록 조회 성공했습니다.",
+      data: todayOrderCustomers,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json(
-      { error: "오늘자 주문 고객 조회 실패" },
-      { status: 500 },
-    );
+    console.log(`[GET] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "오늘 주문한 고객 목록 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

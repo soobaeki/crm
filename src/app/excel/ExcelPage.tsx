@@ -16,6 +16,7 @@ import {
   postUploadExcelApi,
 } from "@/lib/excel/excel.api";
 import { downloadExcel } from "@/utils/excel";
+import ExcelActionBar from "./ExcelActionBar";
 
 //////////////////////
 // RowData 키 → 한글 레이블 매핑
@@ -114,15 +115,20 @@ export default function ExcelPage() {
 
       {/* 본문 */}
       <ViewBody>
+        {/* 업로드 / 다운로드  */}
+        <ExcelActionBar
+          data={data}
+          uploading={uploading}
+          onUpload={handleUpload}
+          onDownload={handleDownload}
+          onParsed={(rows) => setData(rows)}
+        />
+
         {/* 조회 영역 */}
         <ExcelSearchFilter
           filters={searchFilter}
           onChange={setSearchFilter}
           onSearch={handleSearch}
-          handleUpload={handleUpload}
-          handleDownload={handleDownload}
-          uploading={uploading}
-          data={data}
         />
 
         {/* 리스트 영역 */}

@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { IExcelSearchFilter } from "@/types/filter";
+import { ApiResponse } from "@/lib/core";
 import { getSearchExcelListServer } from "@/lib/excel/excel.server";
 
-// GET: 엑셀 목록 조회
-export async function GET(req: NextRequest) {
+/**
+ * 엑셀 목록 조회
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
 
     const params: IExcelSearchFilter = {
       startDate: searchParams.get("startDate") || "",
@@ -15,10 +21,24 @@ export async function GET(req: NextRequest) {
       weight: Number(searchParams.get("weight") || 0),
     };
 
-    const rows = await getSearchExcelListServer(params);
-    return NextResponse.json(rows, { status: 200 });
+    const excelList = await getSearchExcelListServer(params);
+
+    const response: ApiResponse<typeof excelList> = {
+      success: true,
+      message: "엑셀 목록 조회 성공했습니다.",
+      data: excelList,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error("GET /api/excel/search error:", error);
-    return NextResponse.json({ error: "엑셀 목록 조회 실패" }, { status: 500 });
+    console.error(`[GET] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "엑셀 목록 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

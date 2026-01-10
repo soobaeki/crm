@@ -4,7 +4,6 @@
 // import
 //////////////////////
 import { ChangeEvent } from "react";
-import { RowData } from "@/types/excel";
 import { IExcelSearchFilter } from "@/types/filter";
 
 //////////////////////
@@ -14,10 +13,6 @@ interface IProps {
   filters: IExcelSearchFilter;
   onChange: (filters: IExcelSearchFilter) => void;
   onSearch: () => void;
-  handleUpload: () => void;
-  handleDownload: () => void;
-  uploading: boolean;
-  data: RowData[];
 }
 
 //////////////////////
@@ -27,10 +22,6 @@ export default function ExcelSearchFilter({
   filters,
   onChange,
   onSearch,
-  handleUpload,
-  handleDownload,
-  uploading,
-  data,
 }: IProps) {
   //////////////////////
   // handler
@@ -87,23 +78,6 @@ export default function ExcelSearchFilter({
           onClick={onSearch}
         >
           조회
-        </button>
-
-        {/* 업로드 버튼 */}
-        <button
-          onClick={handleUpload}
-          className="rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {uploading ? "업로드 중..." : "업로드"}
-        </button>
-
-        {/* 다운로드 버튼 */}
-        <button
-          onClick={handleDownload}
-          disabled={data.length === 0}
-          className="rounded bg-green-500 px-4 py-2 text-white disabled:opacity-50"
-        >
-          다운로드
         </button>
       </div>
     </section>

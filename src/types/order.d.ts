@@ -43,3 +43,12 @@ export interface ShippingAddress {
 }
 
 export type ShippingAddressFormInput = Omit<Customer, "id" | "createdAt">;
+
+export interface TodaysOrdersCustomers {
+  customerName: string;
+  address: string;
+  orderDate: string;
+  productName: string;
+  quantity: number;
+  totalPrice: number;
+}

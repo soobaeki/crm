@@ -16,7 +16,7 @@ import {
   getProducts,
   postProduct,
   putProduct,
-} from "@/lib/products/product.api";
+} from "@/lib/product/product.api";
 import ProductModal from "./ProductModal";
 
 //////////////////////

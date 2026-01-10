@@ -19,3 +19,24 @@ export interface CustomerRequest {
 }
 
 export type CustomerRequestFormInput = Omit<Customer, "id" | "createdAt">;
+
+export interface CustomerStats {
+  total: number;
+  recent30Days: number;
+}
+
+export interface RegionCustomerCount {
+  region: string;
+  count: number;
+}
+
+export interface CustomerIssue {
+  customerName: string;
+  content: string;
+  createdAt: string;
+  status: string;
+  priority: string;
+  handledBy: number;
+  handledAt: string;
+  handlerNote: string;
+}

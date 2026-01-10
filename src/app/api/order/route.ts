@@ -1,64 +1,153 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { OrderFormInput, OrderItemFormInput } from "@/types/order";
+import { ApiResponse } from "@/lib/core";
 import {
   deleteOrderWithItems,
   getOrderWithItems,
   postOrderWithItems,
   updateOrderWithItems,
-} from "@/lib/orders/order.server";
+} from "@/lib/order/order.server";
 
-// GET: 주문 목록 조회
-export async function GET(orderId?: number) {
+/**
+ * 주문 목록 조회
+ *
+ * @param orderId 주문번호
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const orders = await getOrderWithItems(orderId);
-    return NextResponse.json(orders, { status: 200 });
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get("orderId");
+
+    const orders = await getOrderWithItems(
+      orderId ? Number(orderId) : undefined,
+    );
+
+    const response: ApiResponse<typeof orders> = {
+      success: true,
+      message: "주문 목록 조회 성공했습니다.",
+      data: orders,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "주문 목록 조회 실패" }, { status: 500 });
+    console.log(`[GET] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "주문 목록 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// POST: 주문 등록
-export async function POST(req: Request) {
+/**
+ * 주문 등록
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function POST(request: NextRequest) {
   try {
-    const { orderData, itemsData } = (await req.json()) as {
+    const { orderData, itemsData } = (await request.json()) as {
       orderData: OrderFormInput;
       itemsData: OrderItemFormInput[];
     };
-    const result = await postOrderWithItems(orderData, itemsData);
-    return NextResponse.json(result, { status: 201 });
+
+    const postOrders = await postOrderWithItems(orderData, itemsData);
+
+    const response: ApiResponse<typeof postOrders> = {
+      success: true,
+      message: "주문 등록 성공하였습니다.",
+      data: postOrders,
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 등록 실패" }, { status: 500 });
+    console.log(`[POST] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "주문 등록 실패하였습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// PUT: 주문 수정
-export async function PUT(req: Request) {
+/**
+ * 주문 수정
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function PUT(request: NextRequest) {
   try {
-    const { orderId, orderData, itemsData } = (await req.json()) as {
+    const { orderId, orderData, itemsData } = (await request.json()) as {
       orderId: number;
       orderData: OrderFormInput;
       itemsData: OrderItemFormInput[];
     };
-    const result = await updateOrderWithItems(orderId, orderData, itemsData);
-    return NextResponse.json(result, { status: 200 });
+
+    const updateOrders = await updateOrderWithItems(
+      orderId,
+      orderData,
+      itemsData,
+    );
+
+    const response: ApiResponse<typeof updateOrders> = {
+      success: true,
+      message: "주문 수정 성공했습니다.",
+      data: updateOrders,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 수정 실패" }, { status: 500 });
+    console.log(`[PUT] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "주문 수정 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// DELETE: 주문 실패
-export async function DELETE(req: Request) {
+/**
+ * 주문 삭제
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function DELETE(request: NextRequest) {
   try {
-    const { orderId } = (await req.json()) as {
+    const { orderId } = (await request.json()) as {
       orderId: number;
     };
-    const result = await deleteOrderWithItems(orderId);
-    return NextResponse.json(result, { status: 200 });
+
+    const deleteOrders = await deleteOrderWithItems(orderId);
+
+    const response: ApiResponse<typeof deleteOrders> = {
+      success: true,
+      message: "주문 삭제 성공했습니다.",
+      data: deleteOrders,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 삭제 실패" }, { status: 500 });
+    console.log(`[DELETE] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "주문 삭제 실패했습니다.",
+      data: null,
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 }

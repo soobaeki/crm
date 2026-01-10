@@ -1,21 +1,35 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { RowData } from "@/types/excel";
+import { ApiResponse } from "@/lib/core";
 import { postUploadExcelServer } from "@/lib/excel/excel.server";
 
-// POST: 엑셀 업로드
-export async function POST(req: Request) {
+/**
+ * 엑셀 업로드
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function POST(request: NextRequest) {
   try {
-    const rows: RowData[] = await req.json();
-    await postUploadExcelServer(rows);
-    return NextResponse.json(
-      { success: true, message: "엑셀 업로드 성공" },
-      { status: 201 },
-    );
+    const rows: RowData[] = await request.json();
+    const excelUpload = await postUploadExcelServer(rows);
+
+    const response: ApiResponse<typeof excelUpload> = {
+      success: true,
+      message: "엑셀 업로드에 성공했습니다.",
+      data: excelUpload,
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json(
-      { success: false, error: "엑셀 업로드 실패" },
-      { status: 500 },
-    );
+    console.log(`[POST] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "엑셀 업로드에 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

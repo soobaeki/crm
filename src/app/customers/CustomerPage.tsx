@@ -13,7 +13,7 @@ import {
 import ViewTitle from "@/components/commons/ViewTitle";
 import CustomerForm from "@/components/customers/CustomerForm";
 import CustomerList from "@/components/customers/CustomerList";
-import { getCustomers } from "@/lib/customers/customer.api";
+import { getCustomers } from "@/lib/customer/customer.api";
 import CustomerModal from "./CustomerModel";
 
 //////////////////////

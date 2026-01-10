@@ -17,3 +17,12 @@ export type RowData = {
   payer: string | null; // 입금자 (orders.payer)
   notes: string | null; // 특이사항 (customer_requests.content)
 };
+
+/**
+ * skip된 고객 데이터
+ */
+export type SkippedRow = {
+  rowId: number | null;
+  reason: string;
+  row: RowData;
+};

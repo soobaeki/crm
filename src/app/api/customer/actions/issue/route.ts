@@ -1,16 +1,33 @@
-import { NextResponse } from "next/server";
-import { getCustomerIssues } from "@/lib/customers/customer.server";
+import { NextRequest, NextResponse } from "next/server";
+import { ApiResponse } from "@/lib/core";
+import { getCustomerIssues } from "@/lib/customer/customer.server";
 
-// 고객 주의사항
-export async function GET() {
+/**
+ * 고객 주의사항 조회 API
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const result = await getCustomerIssues();
-    return NextResponse.json(result, { status: 200 });
+    const issues = await getCustomerIssues();
+
+    const response: ApiResponse<typeof issues> = {
+      success: true,
+      message: "고객 주의사항 조회 성공했습니다.",
+      data: issues,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json(
-      { error: "고객 주의사항 조회 실패" },
-      { status: 500 },
-    );
+    console.error(`[GET] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "고객 주의사항 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCustomers } from "@/lib/customers/customer.server";
+import { getCustomers } from "@/lib/customer/customer.server";
 
 // GET: 고객 목록 조회
 export async function GET(req: NextRequest) {

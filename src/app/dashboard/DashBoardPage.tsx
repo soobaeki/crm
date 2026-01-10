@@ -25,8 +25,8 @@ import {
   getCustomerIssues,
   getCustomerStats,
   getRegionCustomerCounts,
-} from "@/lib/customers/customer.api";
-import { getTodaysOrdersCustomers } from "@/lib/orders/order.api";
+} from "@/lib/customer/customer.api";
+import { getTodaysOrdersCustomers } from "@/lib/order/order.api";
 
 ChartJS.register(
   CategoryScale,

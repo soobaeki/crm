@@ -1,13 +1,33 @@
-import { NextResponse } from "next/server";
-import { getCustomerStats } from "@/lib/customers/customer.server";
+import { NextRequest, NextResponse } from "next/server";
+import { ApiResponse } from "@/lib/core";
+import { getCustomerStats } from "@/lib/customer/customer.server";
 
-// GET: 총 고객 수, 30일 이내 고객 수 조회
-export async function GET() {
+/**
+ * 총 고객 수, 30일 이내 고객 수 조회
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const result = await getCustomerStats();
-    return NextResponse.json(result, { status: 200 });
+    const customerStats = await getCustomerStats();
+
+    const response: ApiResponse<typeof customerStats> = {
+      success: true,
+      message: "고객 수 조회 성공했습니다.",
+      data: customerStats,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "고객 수 조회 실패" }, { status: 500 });
+    console.error(`[GET] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "고객 수 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

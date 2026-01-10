@@ -1,59 +1,136 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ApiResponse } from "@/lib/core";
 import {
   createProduct,
   deleteProduct,
   selectProducts,
   updateProduct,
-} from "@/lib/products/product.server";
+} from "@/lib/product/product.server";
 
-// GET: 상품 목록 조회
-export async function GET(req: NextRequest) {
+/**
+ * 상품 목록 조회
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate") || undefined;
     const endDate = searchParams.get("endDate") || undefined;
     const searchText = searchParams.get("searchText") || undefined;
 
     const products = await selectProducts(startDate, endDate, searchText);
-    return NextResponse.json(products, { status: 200 });
+
+    const response: ApiResponse<typeof products> = {
+      success: true,
+      message: "상품 목록 조회 성공했습니다.",
+      data: products,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 목록 조회 실패" }, { status: 500 });
+    console.log(`[GET] ${request.url} : `, error);
+
+    const resposne: ApiResponse<null> = {
+      success: false,
+      message: "상품 목록 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(resposne, { status: 500 });
   }
 }
 
-// POST: 상품 등록
-export async function POST(req: Request) {
+/**
+ * 상품 등록
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function POST(request: NextRequest) {
   try {
-    const data = await req.json();
-    const result = await createProduct(data);
-    return NextResponse.json(result, { status: 201 });
+    const data = await request.json();
+    const postCustomer = await createProduct(data);
+
+    const response: ApiResponse<typeof postCustomer> = {
+      success: true,
+      message: "상품 등록 성공했습니다.",
+      data: postCustomer,
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 등록 실패" }, { status: 500 });
+    console.log(`[POST] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "상품 등록 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// PUT: 상품 수정
-export async function PUT(req: Request) {
+/**
+ * 상품 수정
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function PUT(request: NextRequest) {
   try {
-    const data = await req.json();
-    const result = await updateProduct(data);
-    return NextResponse.json(result, { status: 200 });
+    const data = await request.json();
+    const putProduct = await updateProduct(data);
+
+    const response: ApiResponse<typeof putProduct> = {
+      success: true,
+      message: "상품 수정 성공했습니다.",
+      data: putProduct,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 수정 실패" }, { status: 500 });
+    console.log(`[PUT] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "상품 수정 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// DELETE: 상품 삭제
-export async function DELETE(req: Request) {
+/**
+ * 상품 삭제
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function DELETE(request: NextRequest) {
   try {
-    const data: number = await req.json();
-    await deleteProduct(data);
-    return NextResponse.json({ message: "상품 삭제 성공" }, { status: 200 });
+    const body = await request.json();
+    const product = await deleteProduct(body);
+
+    const response: ApiResponse<typeof product> = {
+      success: true,
+      message: "상품 삭제 성공했습니다.",
+      data: product,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "상품 삭제 실패" }, { status: 500 });
+    console.log(`[DELETE] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: (error as Error).message || "상품 삭제 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

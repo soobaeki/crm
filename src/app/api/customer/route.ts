@@ -1,29 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCustomers, postCustomer } from "@/lib/customers/customer.server";
+import { ApiResponse } from "@/lib/core";
+import { getCustomers, postCustomer } from "@/lib/customer/customer.server";
 
-// GET: 고객 목록 조회
-export async function GET(req: NextRequest) {
+/**
+ * 고객 목록 조회
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate") || undefined;
     const endDate = searchParams.get("endDate") || undefined;
 
     const customers = await getCustomers(startDate, endDate);
-    return NextResponse.json(customers, { status: 200 });
+
+    const response: ApiResponse<typeof customers> = {
+      success: true,
+      message: "고객 목록 조회 성공했습니다.",
+      data: customers,
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "고객 목록 조회 실패" }, { status: 500 });
+    console.error(`[GET] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "고객 목록 조회 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// POST: 고객 등록
-export async function POST(req: Request) {
+/**
+ * 고객 등록
+ *
+ * @param request Next.js Request 객체
+ * @returns
+ */
+export async function POST(request: NextRequest) {
   try {
-    const data = await req.json();
-    const result = await postCustomer(data);
-    return NextResponse.json(result, { status: 201 });
+    const data = await request.json();
+    const customer = await postCustomer(data);
+
+    const response: ApiResponse<typeof customer> = {
+      success: true,
+      message: "고객 등록 성공했습니다.",
+      data: customer,
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.log("error", error);
-    return NextResponse.json({ error: "고객 등록 실패" }, { status: 500 });
+    console.error(`[POST] ${request.url} : `, error);
+
+    const response: ApiResponse<null> = {
+      success: false,
+      message: "고객 등록 실패했습니다.",
+      data: null,
+    };
+
+    return NextResponse.json(response, { status: 500 });
   }
 }

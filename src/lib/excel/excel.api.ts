@@ -1,33 +1,50 @@
-import { RowData } from "@/types/excel";
+import { RowData, SkippedRow } from "@/types/excel";
 import { IExcelSearchFilter } from "@/types/filter";
+import { toQueryString } from "@/utils/url";
 import { callApi } from "../core";
 
-export async function postUploadExcelApi(rows: RowData[]): Promise<RowData[]> {
-  // route.ts 호출
-  const res = await callApi("/api/excel/upload", "POST", rows);
+/**
+ * 엑셀 업로드 등록
+ *
+ * @param rows 업로드할 데이터
+ * @returns
+ */
+export async function postUploadExcelApi(rows: RowData[]): Promise<
+  {
+    total: number;
+    successCount: number;
+    skippedCount: number;
+    skippedRows: SkippedRow[];
+  }[]
+> {
+  const res = await callApi<
+    RowData[],
+    {
+      total: number;
+      successCount: number;
+      skippedCount: number;
+      skippedRows: SkippedRow[];
+    }[]
+  >("/api/excel/upload", "POST", rows);
 
-  if (!res.ok) {
-    throw new Error("엑셀 등록 실패");
-  }
-  return res.json(); // 생성된 데이터 반환
+  return res.data!;
 }
 
+/**
+ * 업로드된 데이터 조회
+ *
+ * @param input 조건 데이터
+ * @returns
+ */
 export async function getSearchExcelListApi(
-  req: IExcelSearchFilter,
+  input: IExcelSearchFilter,
 ): Promise<RowData[]> {
-  const params = new URLSearchParams();
-  if (req.startDate) params.append("startDate", req.startDate);
-  if (req.endDate) params.append("endDate", req.endDate);
-  if (req.searchText) params.append("searchText", req.searchText);
-  if (req.item) params.append("item", req.item);
-  if (req.weight) params.append("weight", req.weight.toString());
+  const qs = toQueryString(input);
 
-  // route.ts 호출
-  const url = `/api/excel/search?${params.toString()}`;
-  const res = await callApi(url, "GET");
+  const res = await callApi<undefined, RowData[]>(
+    `/api/excel/search?${qs}`,
+    "GET",
+  );
 
-  if (!res.ok) {
-    throw new Error("엑셀 목록 조회 실패");
-  }
-  return res.json(); // 생성된 데이터 반환
+  return res.data!;
 }
