@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiResponse } from "@/lib/core";
 import { getCustomerIssues } from "@/lib/customer/customer.server";
 
+export const dynamic = "force-dynamic"; // 추가
 /**
  * 고객 주의사항 조회 API
  *
