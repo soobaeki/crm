@@ -73,14 +73,7 @@ export default function DashBoardPage() {
     queryKey: ["getTodaysOrdersCustomers"],
     queryFn: async () => {
       const data = await getTodaysOrdersCustomers();
-      return data as unknown as {
-        customerName: string;
-        address: string;
-        orderDate: string;
-        productName: string;
-        quantity: number;
-        totalPrice: number;
-      }[];
+      return data as any;
     },
   });
 
