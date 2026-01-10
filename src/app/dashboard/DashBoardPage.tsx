@@ -71,7 +71,17 @@ export default function DashBoardPage() {
     }[]
   >({
     queryKey: ["getTodaysOrdersCustomers"],
-    queryFn: getTodaysOrdersCustomers,
+    queryFn: async () => {
+      const data = await getTodaysOrdersCustomers();
+      return data as unknown as {
+        customerName: string;
+        address: string;
+        orderDate: string;
+        productName: string;
+        quantity: number;
+        totalPrice: number;
+      }[];
+    },
   });
 
   const { data: customerIssues } = useQuery<
@@ -180,20 +190,21 @@ export default function DashBoardPage() {
               </tr>
             </thead>
             <tbody>
-              {todaysOrdersCustomers?.map((c, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  {todayOrdersColumns.map((col) => {
-                    return (
-                      <td
-                        key={col.key}
-                        className={`border px-3 py-2 ${typeof c[col.key as keyof typeof c] === "number" ? "text-right" : "text-left"}`}
-                      >
-                        {c[col.key as keyof typeof c]}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {todaysOrdersCustomers &&
+                todaysOrdersCustomers?.map((c, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    {todayOrdersColumns.map((col) => {
+                      return (
+                        <td
+                          key={col.key}
+                          className={`border px-3 py-2 ${typeof c[col.key as keyof typeof c] === "number" ? "text-right" : "text-left"}`}
+                        >
+                          {c[col.key as keyof typeof c]}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
