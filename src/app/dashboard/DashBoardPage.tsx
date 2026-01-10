@@ -60,16 +60,15 @@ export default function DashBoardPage() {
     queryFn: getRegionCustomerCounts,
   });
 
-  const { data: todaysOrdersCustomers } = useQuery<
-    {
-      customerName: string;
-      address: string;
-      orderDate: string;
-      productName: string;
-      quantity: number;
-      totalPrice: number;
-    }[]
-  >({
+  // {
+  //   customerName: string;
+  //   address: string;
+  //   orderDate: string;
+  //   productName: string;
+  //   quantity: number;
+  //   totalPrice: number;
+  // }
+  const { data: todaysOrdersCustomers } = useQuery<any[]>({
     queryKey: ["getTodaysOrdersCustomers"],
     queryFn: async () => {
       const data = await getTodaysOrdersCustomers();
