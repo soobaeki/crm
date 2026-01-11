@@ -10,7 +10,8 @@
     "postinstall": "patch-package",
     "test": "jest",
     "format": "prettier --write .",
-    "prisma:update": "npx prisma db pull && npx prisma generate"
+    "prisma:update": "npx prisma db pull && npx prisma generate",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
