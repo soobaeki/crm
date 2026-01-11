@@ -25,5 +25,11 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts", // 모든 .test.ts 파일 제외
+    "**/*.test.tsx", // 모든 .test.tsx 파일 제외
+    "**/*.spec.ts", // (필요시) spec 파일도 제외
+    "jest.config.ts" // jest 설정 파일도 제외
+  ]
 }
