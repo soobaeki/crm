@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { TodaysOrdersCustomers } from "@/types/order";
 import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewContainer from "@/components/commons/ViewContainer";
@@ -68,12 +69,9 @@ export default function DashBoardPage() {
   //   quantity: number;
   //   totalPrice: number;
   // }
-  const { data: todaysOrdersCustomers } = useQuery<any[]>({
+  const { data: todaysOrdersCustomers } = useQuery<TodaysOrdersCustomers[]>({
     queryKey: ["getTodaysOrdersCustomers"],
-    queryFn: async () => {
-      const data = await getTodaysOrdersCustomers();
-      return data as any;
-    },
+    queryFn: getTodaysOrdersCustomers,
   });
 
   const { data: customerIssues } = useQuery<
@@ -182,21 +180,20 @@ export default function DashBoardPage() {
               </tr>
             </thead>
             <tbody>
-              {todaysOrdersCustomers &&
-                todaysOrdersCustomers?.map((c, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    {todayOrdersColumns.map((col) => {
-                      return (
-                        <td
-                          key={col.key}
-                          className={`border px-3 py-2 ${typeof c[col.key as keyof typeof c] === "number" ? "text-right" : "text-left"}`}
-                        >
-                          {c[col.key as keyof typeof c]}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+              {todaysOrdersCustomers?.map((c, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  {todayOrdersColumns.map((col) => {
+                    return (
+                      <td
+                        key={col.key}
+                        className={`border px-3 py-2 ${typeof c[col.key as keyof typeof c] === "number" ? "text-right" : "text-left"}`}
+                      >
+                        {c[col.key as keyof typeof c]}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

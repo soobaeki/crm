@@ -86,8 +86,10 @@ export async function deleteOrder(
  *
  * @returns
  */
-export async function getTodaysOrdersCustomers(): Promise<TodaysOrdersCustomers> {
-  const res = await callApi<undefined, TodaysOrdersCustomers>(
+export async function getTodaysOrdersCustomers(): Promise<
+  TodaysOrdersCustomers[]
+> {
+  const res = await callApi<undefined, TodaysOrdersCustomers[]>(
     "api/order/actions/today",
     "GET",
   );
