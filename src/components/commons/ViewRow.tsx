@@ -23,6 +23,9 @@ export default function ViewRow({
     6: "lg:grid-cols-6",
   };
 
+  const responsiveCols =
+    cols === 1 ? "grid-cols-1" : `grid-cols-1 sm:grid-cols-2 ${colMap[cols]}`;
+
   return (
     // prettier-ignore
     <div
@@ -38,8 +41,9 @@ export default function ViewRow({
            - 태블릿: 무조건 2열 (한 줄에 두 개씩)
            - 데스크톱: 위 colMap에서 선택된 열 개수 적용
         */
-        grid-cols-1 sm:grid-cols-2 ${colMap[cols]}
-
+        ${responsiveCols}
+        justify-items-stretch  /* 추가: 가로 방향 꽉 채움 */
+        
         /* 추가 스타일 */
         ${className}
       `}

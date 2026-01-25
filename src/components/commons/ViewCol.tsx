@@ -19,7 +19,9 @@ export default function ViewCol({ children, className = "" }: IProps) {
         gap-4 
         
         /* 3. 너비: 부모 너비에 맞춤 */
-        w-full 
+        w-full
+        min-w-0      /* 중요: 내부 요소(테이블 등)가 커도 부모 폭을 넘지 않게 방어 */
+        items-stretch /* 추가: 자식들(Card)을 가로로 꽉 늘림 */
         
         /* 추가 스타일 */
         ${className}

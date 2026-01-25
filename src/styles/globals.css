@@ -2,7 +2,12 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a; /* 약간의 네이비 톤이 섞인 블랙으로 변경 (더 고급스러움) */
+  --primary: #4f46e5; /* 메인: 인디고 */
+  --primary-hover: #4338ca;
+  --secondary: #0ea5e9; /* 서브: 스카이블루 */
+  --muted: #f1f5f9; /* 비활성 영역 또는 배경용 */
+  --border: #e2e8f0; /* 구분선 */
 }
 
 /* Design Tokens */
@@ -10,6 +15,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
 }
 
 /* Base Reset + Typography */
@@ -20,6 +29,14 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   line-height: 1.5;
+}
+
+/* 테이블이나 카드 제목 등에 적용하면 좋은 가이드 */
+h1,
+h2,
+h3 {
+  color: #1e293b; /* 너무 무겁지 않은 Slate 800 */
+  font-weight: 700;
 }
 
 /* Global Layout Utility */
