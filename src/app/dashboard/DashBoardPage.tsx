@@ -21,6 +21,8 @@ import { TodaysOrdersCustomers } from "@/types/order";
 import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewContainer from "@/components/commons/ViewContainer";
+import ViewRow from "@/components/commons/ViewRow";
+import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
 import {
   getCustomerIssues,
@@ -61,14 +63,6 @@ export default function DashBoardPage() {
     queryFn: getRegionCustomerCounts,
   });
 
-  // {
-  //   customerName: string;
-  //   address: string;
-  //   orderDate: string;
-  //   productName: string;
-  //   quantity: number;
-  //   totalPrice: number;
-  // }
   const { data: todaysOrdersCustomers } = useQuery<TodaysOrdersCustomers[]>({
     queryKey: ["getTodaysOrdersCustomers"],
     queryFn: getTodaysOrdersCustomers,
@@ -99,7 +93,8 @@ export default function DashBoardPage() {
       {
         label: "고객 수",
         data: regionCounts?.map((rc) => rc.count) ?? [],
-        backgroundColor: "#34D399",
+        backgroundColor: "#10b981", // Emerald-500: 조금 더 모던한 색상
+        borderRadius: 6, // 막대 끝을 부드럽게
       },
     ],
   };
@@ -108,8 +103,8 @@ export default function DashBoardPage() {
     { key: "orderDate", label: "주문일자" },
     { key: "customerName", label: "이름" },
     { key: "productName", label: "상품명" },
-    { key: "quantity", label: "수량" },
-    { key: "totalPrice", label: "총 금액" },
+    { key: "quantity", label: "수량", align: "right" as const },
+    { key: "totalPrice", label: "총 금액", align: "right" as const },
     { key: "address", label: "주소" },
   ];
 
@@ -117,14 +112,15 @@ export default function DashBoardPage() {
     { key: "customerName", label: "고객명" },
     { key: "content", label: "요청사항" },
     { key: "createdAt", label: "요청일시" },
-    { key: "status", label: "진행상태" },
-    { key: "priority", label: "요청 우선순위" },
+    { key: "status", label: "진행상태", align: "center" as const },
+    { key: "priority", label: "요청 우선순위", align: "center" as const },
     { key: "handledBy", label: "처리 담당자" },
     { key: "handledAt", label: "처리 완료 시각" },
     { key: "handlerNote", label: "담당자 메모" },
   ];
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return <div className="text-centertext-gray-400 p-10">Loading...</div>;
 
   //////////////////////
   // render (JSX)
@@ -136,100 +132,69 @@ export default function DashBoardPage() {
 
       {/* 본문 */}
       <ViewBody>
-        {/* 첫 문단 */}
-        <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 상단 통계 카드 섹션: ViewRow를 사용하여 반응형 자동 조절 */}
+        <ViewRow cols={4}>
           {/* 전체 고객 수 */}
           <ViewCard
-            title={"전체 고객 수"}
+            title="전체 고객 수"
             value={`${(customerStats?.total ?? 0).toLocaleString()}명`}
+            trend="+2.5%"
           />
 
           {/* 신규 고객 수 (최근 30일) */}
           <ViewCard
-            title={"신규 고객 수 (최근 30일)"}
+            title="신규 고객 수 (최근 30일)"
             value={`${(customerStats?.recent30Days ?? 0).toLocaleString()}명`}
+            trend="+10%"
           />
 
           {/* 재구매율 카드 예시 */}
-          <ViewCard title={"재구매율"} value={"72%"} />
+          <ViewCard title="재구매율" value="72%" trend="-1.2%" />
 
           {/* 기타 통계 카드 예시 */}
-          <ViewCard title={"총 주문 수"} value={"1,234건"} />
-        </div>
+          <ViewCard
+            title="오늘 주문 건수"
+            value="24건"
+            trendLabel="어제 대비"
+            trend="+4%"
+          />
+        </ViewRow>
 
-        {/* 두번째 문단 */}
-        <div className="grid grid-cols-1">
-          <div className="rounded-xl bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-semibold">지역별 고객 분포</h3>
-            <Bar data={barRegionData} />
-          </div>
-        </div>
+        {/* 중간 차트 및 주요 지표 */}
+        <ViewRow cols={2}>
+          <ViewCard title="지역별 고객 분포">
+            <div className="mt-4 h-[300px] w-full">
+              <Bar
+                data={barRegionData}
+                options={{
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } }, // 범례 숨김으로 더 깔끔하게
+                }}
+              />
+            </div>
+          </ViewCard>
 
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h3 className="mb-4 text-lg font-semibold">최근 고객 목록</h3>
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                {todayOrdersColumns.map((col) => {
-                  return (
-                    <th key={col.key} className="border px-3 py-2 text-center">
-                      {col.label}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {todaysOrdersCustomers?.map((c, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  {todayOrdersColumns.map((col) => {
-                    return (
-                      <td
-                        key={col.key}
-                        className={`border px-3 py-2 ${typeof c[col.key as keyof typeof c] === "number" ? "text-right" : "text-left"}`}
-                      >
-                        {c[col.key as keyof typeof c]}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          {/* 최근 고객 목록: 표가 너무 크지 않게 내부 스크롤 적용 */}
+          <ViewCard title="최근 고객 목록">
+            {/* max-h 설정을 통해 카드 크기가 무한정 커지는 것 방지 */}
+            <div className="mt-2 max-h-[300px] overflow-auto">
+              <ViewTable
+                columns={todayOrdersColumns}
+                data={todaysOrdersCustomers?.slice(0, 5) ?? []}
+              />
+            </div>
+          </ViewCard>
+        </ViewRow>
 
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h3 className="mb-4 text-lg font-semibold">고객 문의/이슈</h3>
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                {customerIssuesColumns.map((col) => {
-                  return (
-                    <th key={col.key} className="border px-3 py-2 text-center">
-                      {col.label}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {customerIssues?.map((issue, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  {customerIssuesColumns.map((col) => {
-                    return (
-                      <td
-                        key={col.key}
-                        className={`border px-3 py-2 ${typeof issue[col.key as keyof typeof issue] === "number" ? "text-right" : "text-left"}`}
-                      >
-                        {issue[col.key as keyof typeof issue]}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* 하단 이슈 리스트: 전체 폭 사용 */}
+        <ViewRow cols={1}>
+          <ViewCard title="미해결 고객 이슈">
+            <ViewTable
+              columns={customerIssuesColumns}
+              data={customerIssues ?? []}
+            />
+          </ViewCard>
+        </ViewRow>
       </ViewBody>
     </ViewContainer>
   );
