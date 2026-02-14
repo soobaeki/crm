@@ -1,55 +1,107 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a; /* 약간의 네이비 톤이 섞인 블랙으로 변경 (더 고급스러움) */
-  --primary: #4f46e5; /* 메인: 인디고 */
-  --primary-hover: #4338ca;
-  --secondary: #0ea5e9; /* 서브: 스카이블루 */
-  --muted: #f1f5f9; /* 비활성 영역 또는 배경용 */
-  --border: #e2e8f0; /* 구분선 */
+  /* 1. 배경 및 텍스트 */
+  --background: #ffffff; /* [용도] 페이지 전체 배경, 하얀색 카드 섹션의 바탕색 */
+  --foreground: #0f172a; /* [용도] 일반 본문 글자, 제목 텍스트, 기본 아이콘의 색상 */
+
+  /* 2. 브랜드 메인 컬러 (Primary) */
+  --primary: #3b82f6; /* [용도] 가장 중요한 버튼(저장, 등록), 체크박스 활성화, 강조 텍스트 */
+  --primary-hover: #2563eb; /* [용도] 버튼에 마우스 올렸을 때(Hover) 피드백을 주기 위한 진한 블루 */
+
+  /* 3. 네비게이션 전용 */
+  --nav-bg: #ffffff; /* [용도] 왼쪽 사이드바나 상단 메뉴바의 전체 배경색 */
+  --nav-sub-bg: #f8fafc; /* [용도] 메뉴 내 그룹 배경, 마우스 호버 시 강조되는 영역 */
+
+  /* 4. 상태 및 보조 컬러 */
+  --secondary: #10b981; /* [용도] 완료/성공 상태 표시, 긍정적인 수치 지표, 보조 포인트 */
+  --muted: #f1f5f9; /* [용도] 비활성화된 입력창 배경, 부가 설명 글자의 배경색 */
+
+  /* 5. 경계선 및 특수 요소 */
+  --border: #e2e8f0; /* [용도] 테이블 행 구분선, 카드 테두리, 섹션 간의 얇은 구분선 */
+  --tooltip-bg: #1e293b; /* [용도] 마우스 호버 시 나타나는 툴팁(말풍선)의 반전된 다크 배경 */
 }
 
 /* Design Tokens */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-nav-bg: var(--nav-bg);
+  --color-tooltip: var(--tooltip-bg);
+
+  --color-table-header-bg: #f8fafc;
+  --color-table-header-text: #64748b;
+  --color-table-hover: #f1f5f9;
+}
+
+/* 아래 클래스들을 미리 정의해두면 리액트 코드가 매우 깨끗해집니다 */
+@layer components {
+  .layout-root {
+    @apply bg-background text-foreground flex min-h-screen w-full overflow-x-hidden;
+    font-family: var(--font-geist-sans);
+
+    /* [핵심] 모바일: Flex를 아예 끄고 기본 Block 흐름을 따름 (위->아래) */
+    display: block;
+
+    /* [핵심] 데스크톱(md): Flex를 활성화하여 좌우 배치로 전환 (사이드바 - 본문) */
+    @apply md:flex md:flex-row;
+  }
+  /* 전체 컨테이너 */
+  .layout-container {
+    @apply flex min-h-screen w-full overflow-x-hidden;
+  }
+
+  /* 3. 본문 영역 */
+  .layout-main {
+    @apply flex-1;
+  }
+
+  .table-header-cell {
+    @apply bg-table-header-bg/80 text-table-header-text border-border sticky top-0 z-10 border-b px-4 py-3 text-[12px] font-bold tracking-wider uppercase backdrop-blur-sm transition-colors;
+  }
+
+  .table-body-row {
+    @apply hover:bg-table-hover/50 transition-colors;
+  }
+
+  .table-body-cell {
+    @apply border-border text-foreground/80 border-b px-5 py-4 text-[14px];
+  }
+
+  .pagination-wrapper {
+    @apply border-border bg-background flex items-center justify-between border-t px-6 py-4;
+  }
+
+  .custom-select {
+    @apply border-border bg-muted/50 text-foreground focus:ring-primary/20 cursor-pointer appearance-none rounded-xl border px-4 py-2 pr-10 text-sm font-semibold transition-all outline-none focus:bg-white focus:ring-2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%2364748b' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
 }
 
 /* Base Reset + Typography */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-sans);
+  margin: 0; /* [이유] 브라우저 기본 마진 제거 */
+  padding: 0; /* [이유] 브라우저 기본 패딩 제거 */
   background-color: var(--color-background);
   color: var(--color-foreground);
-  line-height: 1.5;
+  line-height: 1.5; /* [이유] 텍스트 가독성을 위한 표준 줄간격 */
+  -webkit-font-smoothing: antialiased; /* [이유] 폰트를 더 매끄럽고 선명하게 렌더링 */
 }
 
-/* 테이블이나 카드 제목 등에 적용하면 좋은 가이드 */
+/* 기본 제목 설정 */
 h1,
 h2,
 h3 {
-  color: #1e293b; /* 너무 무겁지 않은 Slate 800 */
-  font-weight: 700;
-}
-
-/* Global Layout Utility */
-.layout-root {
-  @apply flex min-h-screen flex-col overflow-x-hidden;
-}
-
-.layout-container {
-  @apply flex min-h-0 flex-1;
-}
-
-.layout-main {
-  @apply flex min-h-0 min-w-0 flex-1 overflow-auto;
+  color: #1e293b; /* [이유] 일반 본문보다 약간 부드러운 다크 그레이 */
+  font-weight: 700; /* [이유] 제목으로서의 두께감만 기본으로 설정 */
+  margin: 0; /* [이유] 컴포넌트(ViewTitle)에서 마진을 제어하도록 초기화 */
 }
 
 /* Animation example */
@@ -61,7 +113,12 @@ h3 {
     opacity: 1;
   }
 }
-
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out; /* [이유] 중복 정의 삭제 및 0.2s로 반응성 개선 */
+}
+
+/* globals.css */
+[data-nextjs-dev-indicator],
+[data-nextjs-dev-overlay] {
+  display: none !important;
 }

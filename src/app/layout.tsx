@@ -28,9 +28,9 @@ export default function RootLayout({
       lang="ko"
     >
       <body className="layout-root">
+        {/* 왼쪽 NavBar */}
+        <NavBar />
         <div className="layout-container">
-          {/* 왼쪽 NavBar */}
-          <NavBar />
           {/* 오른쪽 본문 */}
           <main className="layout-main">
             <Providers>{children}</Providers>

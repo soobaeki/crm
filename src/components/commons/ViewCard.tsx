@@ -36,36 +36,44 @@ export default function ViewCard({
   return (
     // prettier-ignore
     <div className={`
-    /* 기본 형태: 둥근 모서리와 아주 연한 테두리 */
-    rounded-xl border border-gray-100 bg-white p-6
+      /* 1. 레이아웃 및 기반 설정 */
+      flex flex-col gap-4           /* [이유] 내부 요소를 세로로 배치하고 요소 간 16px 간격을 일정하게 유지함 */
+      w-full bg-white p-6           /* [이유] 가로를 꽉 채우고 배경은 흰색, 내부엔 24px의 충분한 여백을 부여함 */
+      rounded-xl border border-border /* [이유] 모서리를 부드럽게 깎고 시스템 구분선 컬러(--border)로 디자인 통일감을 줌 */
+      h-full                        /* [이유] 데이터 양과 상관없이 부모(ViewRow) 높이에 맞춰 옆 카드와 높이를 동기화함 */
 
-    /* 그림자: 바닥에 살짝 뜬 느낌을 주는 소프트 쉐도우 */
-    shadow-[0_2px_10px_rgba(0,0,0,0.04)]
+      /* 2. 그림자 및 애니메이션 */
+      shadow-[0_2px_10px_rgba(0,0,0,0.04)] /* [이유] 평상시 아주 은은한 그림자로 깔끔함 유지 */
+      transition-all duration-300      /* [이유] 호버 시 0.3초의 부드러운 움직임 제공 */
 
-    /* 레이아웃: 내부 요소 정렬 */
-    flex flex-col gap-4
-
-    /* 상호작용: 마우스 올렸을 때 테두리 색상 변화 */
-    transition-all duration-200 hover:border-blue-200 hover:shadow-md
+      /* 3. 호버 인터랙션 (공중 부양 효과) */
+      hover:z-100                      /* [이유] 마우스 올린 카드만 최상단 층(z-50)으로 올려서 옆 카드 위로 띄움 */
+      hover:-translate-y-2             /* [이유] 위로 8px 이동시켜 입체감 극대화 */
+      hover:border-primary/40          /* [이유] 테두리를 브랜드 컬러로 강조 */
+      hover:shadow-xl                  /* [이유] 높이 뜬 만큼 그림자를 크고 부드럽게 확산 */
+      
+      /* 4. 클릭 피드백 */
+      active:scale-[0.98]              /* [이유] 클릭 시 살짝 작아지게 하여 '눌리는' 물리적 느낌 전달 */
 
     /* 추가 스타일 */
-    ${className}
-    `}>
+    ${className}`}
+    >
       {/* 상단 섹션: 제목과 아이콘 */}
       <div className="flex items-center justify-between">
         {/* text-sm: 부차적 정보이므로 작게 / font-medium: 가독성 확보 */}
         {title && (
           <span className={`
             font-bold 
-            /* 수치형일 땐 작게(sm), 컨텐츠형일 땐 크게(base) */
-            ${isStatsType ? "text-sm text-gray-400" : "text-base text-gray-800"}
+            /* [이유] 수치형은 라벨 느낌(gray-400), 컨텐츠형은 강조된 제목(foreground) */
+            ${isStatsType ? "text-sm text-gray-400" : "text-base text-foreground"}
           `}>
             {title}
           </span>
         )}
         {/* 아이콘 박스: 배경색을 넣어 아이콘을 강조하고 시각적 균형을 맞춤 */}
         {icon && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-500">
+          /* [이유] h-9, w-9로 살짝 키워 가독성을 높이고 primary 컬러를 은은하게 배경으로 깔아줌 */
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/5 text-primary">
             {icon}
           </div>
         )}
@@ -77,20 +85,21 @@ export default function ViewCard({
           <div>
             {/* tabular-nums: 숫자의 폭을 일정하게 맞춰 데이터 변경 시 흔들림 방지 */}
             {/* tracking-tight: 숫자가 너무 퍼져 보이지 않게 자간을 좁힘 */}
-            <p className="text-2xl font-bold tracking-tight text-gray-900 tabular-nums">
+            <p className="text-2xl font-black tracking-tight text-foreground tabular-nums">
               {value}
             </p>
             {/* 트렌드 표시 영역: 수치가 있을 때만 렌더링 */}
             {trend && (
-              <div className="mt-1 flex items-center gap-1">
+              <div className="mt-1 flex items-center gap-1.5">
                 {/* 플러스(+) 기호 여부에 따라 초록색(상승) / 빨간색(하락) 자동 전환 */}
                 <span
                   className={`text-xs font-semibold ${trend.includes("+") ? "text-emerald-500" : "text-rose-500"}`}
                 >
+                  {/* [이유] 텍스트에 따라 시스템 컬러(성공/위험)를 자동으로 입힘 */}
                   {trend}
                 </span>
                 {/* 하드코딩을 피해 props로 받은 라벨 출력 */}
-                <span className="text-[10px] font-normal text-gray-400">
+                <span className="text-[10px] font-medium text-gray-400">
                   {trendLabel}
                 </span>
               </div>
@@ -101,8 +110,10 @@ export default function ViewCard({
 
       {/* 하단 섹션: 표, 차트 등 자유 컨텐츠 (children이 있을 때만 렌더링) */}
       {children && (
-        /* 표가 들어올 경우 위 제목과의 간격을 벌려줌 */
-        <div className={isStatsType ? "mt-2" : "mt-0"}>
+        <div className={`
+          flex-1                                                          /* [이유] 남은 높이를 이 영역이 다 차지하게 하여 하단 여백을 일정하게 유지 */
+          ${isStatsType ? "mt-2 pt-4 border-t border-border/50" : "mt-0"} /* [이유] 수치 아래에 오는 컨텐츠라면 상단 경계선(border-t)을 연하게 주어 구분감 부여 가능 */
+        `}>
           {children}
         </div>
       )}
