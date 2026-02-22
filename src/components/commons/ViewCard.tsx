@@ -37,6 +37,7 @@ export default function ViewCard({
     // prettier-ignore
     <div className={`
       /* 1. 레이아웃 및 기반 설정 */
+      min-w-0
       flex flex-col gap-4           /* [이유] 내부 요소를 세로로 배치하고 요소 간 16px 간격을 일정하게 유지함 */
       w-full bg-white p-6           /* [이유] 가로를 꽉 채우고 배경은 흰색, 내부엔 24px의 충분한 여백을 부여함 */
       rounded-xl border border-border /* [이유] 모서리를 부드럽게 깎고 시스템 구분선 컬러(--border)로 디자인 통일감을 줌 */
@@ -51,6 +52,7 @@ export default function ViewCard({
       hover:-translate-y-2             /* [이유] 위로 8px 이동시켜 입체감 극대화 */
       hover:border-primary/40          /* [이유] 테두리를 브랜드 컬러로 강조 */
       hover:shadow-xl                  /* [이유] 높이 뜬 만큼 그림자를 크고 부드럽게 확산 */
+      hover:rounded-xl
       
       /* 4. 클릭 피드백 */
       active:scale-[0.98]              /* [이유] 클릭 시 살짝 작아지게 하여 '눌리는' 물리적 느낌 전달 */

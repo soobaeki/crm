@@ -6,13 +6,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Customer } from "@/types/customer";
-import {
-  default as ViewBody,
-  default as ViewContainer,
-} from "@/components/commons/ViewContainer";
+import ViewBody from "@/components/commons/ViewBody";
+import ViewCard from "@/components/commons/ViewCard";
+import ViewCol from "@/components/commons/ViewCol";
+import { default as ViewContainer } from "@/components/commons/ViewContainer";
+import ViewSearchFilter from "@/components/commons/ViewSearchFilter";
+import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
-import CustomerForm from "@/components/customers/CustomerForm";
-import CustomerList from "@/components/customers/CustomerList";
 import { getCustomers } from "@/lib/customer/customer.api";
 import CustomerModal from "./CustomerModel";
 
@@ -21,7 +21,7 @@ import CustomerModal from "./CustomerModel";
 //////////////////////
 export default function CustomerPage() {
   //////////////////////
-  // state & router & query
+  // state & query
   //////////////////////
   const [filters, setFilters] = useState({
     startDate: "",
@@ -29,13 +29,17 @@ export default function CustomerPage() {
     endDate: "",
     searchText: "",
   });
+
+  // 모달 제어를 위한 상태
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: customers = [], refetch } = useQuery<Customer[]>({
-    queryKey: ["customers", filters.startDate, filters.endDate],
+    queryKey: ["customers"],
     queryFn: () => getCustomers(filters.startDate, filters.endDate),
+    enabled: false,
   });
 
   //////////////////////
@@ -60,17 +64,38 @@ export default function CustomerPage() {
       const updatedFilters = { ...filters, ...newFilters };
 
       setFilters(updatedFilters);
-
-      // 기간 필터가 바뀌면 서버에서 새로 조회
-      if (
-        newFilters.startDate !== undefined ||
-        newFilters.endDate !== undefined
-      ) {
-        await refetch();
-      }
     },
     [filters, refetch],
   );
+
+  // 조회 버튼 클릭 시 실행될 함수
+  const handleSearch = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
+  const customerColumns = [
+    { key: "nubmer", label: "순번", width: "70px" },
+    {
+      key: "request",
+      label: "요청사항",
+      align: "left" as const,
+      width: "auto",
+    },
+    { key: "customerName", label: "고객명", width: "70px" },
+    {
+      key: "homePhone",
+      label: "집전화",
+      align: "center" as const,
+      width: "100px",
+    },
+    {
+      key: "cellPhone",
+      label: "휴대전화",
+      align: "center" as const,
+      width: "110px",
+    },
+    { key: "address", label: "주소", width: "200px" },
+  ];
 
   //////////////////////
   // render (JSX)
@@ -82,11 +107,24 @@ export default function CustomerPage() {
 
       {/* 본문 */}
       <ViewBody>
-        <CustomerForm onSearchFilter={handleSearchFilter} />
-        <CustomerList
-          customers={filteredCustomers}
-          onSelectCustomer={setSelectedCustomer}
-        />
+        <ViewCol>
+          <ViewSearchFilter
+            dateLabel="조회기간"
+            searchLabel="검색"
+            filters={filters}
+            onChange={handleSearchFilter}
+            onSearch={handleSearch}
+            onRegister={() => setIsModalOpen(true)}
+            registerLabel="고객 추가"
+          />
+          <ViewCard className="hover:border-border! transition-none! hover:translate-y-0! hover:shadow-none! active:scale-100!">
+            <ViewTable
+              columns={customerColumns}
+              data={filteredCustomers}
+              initialPageSize={14}
+            />
+          </ViewCard>
+        </ViewCol>
       </ViewBody>
 
       {/* 모달은 selectedCustomer 존재 여부로 열림/닫힘 결정 */}

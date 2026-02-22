@@ -27,44 +27,49 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Column } from "@/types/table";
 import ViewTooltip from "./ViewTooltip";
 
-interface Column {
-  key: string;
-  label: string;
-  align?: "left" | "center" | "right";
-  sortable?: boolean;
-  width?: string;
-}
-
-interface IProps {
-  columns: Column[];
-  data: any[];
+interface IProps<T> {
+  columns: Column<T>[];
+  data: T[];
   isLoading?: boolean;
   initialPageSize?: number; // 초기 페이지당 로우 수
 }
 
-export default function ViewTable({
+export default function ViewTable<T extends object>({
   columns,
-  data = [],
+  data,
   isLoading,
   initialPageSize = 10,
-}: IProps) {
+}: IProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   // 1. TanStack Table용 컬럼 정의
-  const tableColumns = useMemo<ColumnDef<any>[]>(
+  const tableColumns = useMemo<ColumnDef<T>[]>(
     () =>
       columns.map((col) => ({
-        accessorKey: col.key,
+        accessorKey: col.key as string,
         header: col.label,
         enableSorting: col.sortable !== false,
         cell: (info) => {
+          const row = info.row.original;
+
+          if (col.render) {
+            return col.render(row);
+          }
+
           const value = info.getValue();
+
           if (value === undefined || value === null) return "-";
-          return typeof value === "number" ? value.toLocaleString() : value;
+
+          if (typeof value === "number") {
+            return value.toLocaleString();
+          }
+
+          return String(value);
         },
-        meta: { align: col.align || "center", width: col.width || "auto" },
+        meta: { align: col.align ?? "center", width: col.width ?? "auto" },
       })),
     [columns],
   );
@@ -95,105 +100,103 @@ export default function ViewTable({
   );
 
   return (
-    <div className="bg-background animate-fadeIn flex h-full w-full flex-col overflow-hidden">
+    <div className="flex h-full w-full flex-col overflow-hidden">
       {/* 1. 테이블 섹션 */}
       <div className="flex-1 overflow-x-auto">
-        <div className="inline-block h-full min-w-full align-middle">
-          <table className="min-w-full table-fixed border-separate border-spacing-0">
-            <thead className="border-border bg-muted/50 sticky top-0 z-10 border-b">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const width = (header.column.columnDef.meta as any)?.width;
+        <table className="min-w-full table-fixed border-separate border-spacing-0">
+          <thead className="bg-muted/50 sticky top-0 z-10 border-b">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as any;
+                  return (
+                    <th
+                      key={header.id}
+                      style={{ width: meta.width }}
+                      className={`text-table-header-text cursor-pointer px-4 py-3 text-center text-[13px] font-semibold whitespace-nowrap transition-colors`}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                        {/* 정렬 아이콘 */}
+                        {header.column.getCanSort() && (
+                          <span className="text-table-header-text">
+                            {{
+                              asc: (
+                                <ChevronUpIcon className="text-primary h-4 w-4" />
+                              ),
+                              desc: (
+                                <ChevronDownIcon className="text-primary h-4 w-4" />
+                              ),
+                            }[header.column.getIsSorted() as string] ?? (
+                              <ChevronUpDownIcon className="h-4 w-4 opacity-30" />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+
+          {/* 2. 본문 섹션 */}
+          <tbody className="divide-y">
+            {isLoading ? (
+              <LoadingSkeleton colSpan={columns.length} />
+            ) : table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="hover:bg-muted/30 cursor-pointer transition-colors"
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as any;
                     return (
-                      <th
-                        key={header.id}
-                        style={{ width }}
-                        className={`cursor-pointer px-4 py-3 text-center text-[13px] font-semibold whitespace-nowrap text-gray-500 transition-colors`}
-                        onClick={header.column.getToggleSortingHandler()}
+                      <td
+                        key={cell.id}
+                        style={{
+                          // 1. 전달받은 width를 그대로 적용 (px 혹은 auto)
+                          width: meta.width,
+                          // 2. auto일 때 무한정 늘어나는 것을 방지하기 위한 안전장치
+                          maxWidth:
+                            meta.width === "auto" ? "250px" : meta.width,
+                        }}
+                        className={`group text-table-header-text/120 relative px-5 py-5 ${
+                          meta.align === "center"
+                            ? "text-center"
+                            : meta.align === "right"
+                              ? "text-right"
+                              : "text-left"
+                        }`}
                       >
-                        <div className="flex items-center justify-center gap-1.5">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                          {/* 정렬 아이콘 */}
-                          {header.column.getCanSort() && (
-                            <span className="text-gray-400">
-                              {{
-                                asc: (
-                                  <ChevronUpIcon className="text-primary h-4 w-4" />
-                                ),
-                                desc: (
-                                  <ChevronDownIcon className="text-primary h-4 w-4" />
-                                ),
-                              }[header.column.getIsSorted() as string] ?? (
-                                <ChevronUpDownIcon className="h-4 w-4 opacity-30 transition-opacity group-hover:opacity-100" />
-                              )}
-                            </span>
-                          )}
-                        </div>
-                      </th>
+                        <ViewTooltip content={String(cell.getValue() ?? "-")}>
+                          <div className="cursor-pointer truncate transition-colors">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </div>
+                        </ViewTooltip>
+                      </td>
                     );
                   })}
                 </tr>
-              ))}
-            </thead>
-
-            {/* 2. 본문 섹션 */}
-            <tbody className="divide-border divide-y">
-              {isLoading ? (
-                <LoadingSkeleton colSpan={columns.length} />
-              ) : table.getRowModel().rows.length > 0 ? (
-                table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="hover:bg-muted/30 cursor-pointer transition-colors"
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta as any;
-                      return (
-                        <td
-                          key={cell.id}
-                          style={{
-                            // 1. 전달받은 width를 그대로 적용 (px 혹은 auto)
-                            width: meta.width,
-                            // 2. auto일 때 무한정 늘어나는 것을 방지하기 위한 안전장치
-                            maxWidth:
-                              meta.width === "auto" ? "250px" : meta.width,
-                          }}
-                          className={`group relative px-5 py-5 text-gray-700 ${
-                            meta.align === "center"
-                              ? "text-center"
-                              : meta.align === "right"
-                                ? "text-right"
-                                : "text-left"
-                          }`}
-                        >
-                          <ViewTooltip content={String(cell.getValue() ?? "-")}>
-                            <div className="cursor-pointer truncate transition-colors">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext(),
-                              )}
-                            </div>
-                          </ViewTooltip>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))
-              ) : (
-                <EmptyState colSpan={columns.length} />
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            ) : (
+              <EmptyState colSpan={columns.length} />
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* 3. 페이지네이션 섹션 */}
       {!isLoading && totalCount > 0 && (
-        <div className="border-border bg-background flex items-center justify-between border-t pt-4 shadow-sm">
+        <div className="border-border bg-background flex flex-col gap-3 border-t pt-4 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="text-foreground/60 text-sm">
             전체 <span className="text-foreground font-bold">{totalCount}</span>
             개 항목

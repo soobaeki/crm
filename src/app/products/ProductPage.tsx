@@ -6,18 +6,77 @@
 import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@/types/product";
+import { Column } from "@/types/table";
 import ViewBody from "@/components/commons/ViewBody";
+import ViewCard from "@/components/commons/ViewCard";
+import ViewCol from "@/components/commons/ViewCol";
 import ViewContainer from "@/components/commons/ViewContainer";
+import ViewSearchFilter from "@/components/commons/ViewSearchFilter";
+import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
-import ProductForm from "@/components/products/ProductForm";
-import ProductList from "@/components/products/ProductList";
 import {
   deleteProduct,
   getProducts,
   postProduct,
   putProduct,
 } from "@/lib/product/product.api";
+import { formatNumber } from "@/utils/formatters";
 import ProductModal from "./ProductModal";
+
+const productColumns = [
+  {
+    key: "id",
+    label: "상품 ID",
+    width: "80px",
+  },
+  {
+    key: "sku",
+    label: "SKU",
+  },
+  {
+    key: "name",
+    label: "상품명",
+    align: "left",
+  },
+  {
+    key: "weight",
+    label: "무게",
+    align: "right",
+    render: (row: Product) =>
+      row.weight ? formatNumber(row.weight) + "kg" : "-",
+  },
+  {
+    key: "price",
+    label: "가격",
+    align: "right",
+    render: (row: Product) =>
+      row.price ? formatNumber(row.price) + "원" : "-",
+  },
+  {
+    key: "currency",
+    label: "통화",
+  },
+  {
+    key: "stockQuantity",
+    label: "재고수량",
+    align: "right",
+    render: (row: Product) =>
+      row.stockQuantity ? formatNumber(row.stockQuantity) : "-",
+  },
+  {
+    key: "isActive",
+    label: "활성여부",
+    render: (row: Product) => (row.isActive ? "Y" : "N"),
+  },
+  {
+    key: "createdAt",
+    label: "등록일",
+  },
+  {
+    key: "updatedAt",
+    label: "수정일",
+  },
+] satisfies Column<Product>[];
 
 //////////////////////
 // component start
@@ -55,6 +114,11 @@ export default function ProductPage() {
     },
     [filters],
   );
+
+  // 조회 버튼 클릭 시 실행될 함수
+  const handleSearch = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const handleOpenModal = useCallback((product?: Product) => {
     setSelectedProduct(product ?? null);
@@ -96,11 +160,19 @@ export default function ProductPage() {
 
       {/* 본문 */}
       <ViewBody>
-        <ProductForm
-          onSearchFilter={handleSearchFilter}
-          onOpenModal={handleOpenModal}
-        />
-        <ProductList products={products} onSelectProduct={handleOpenModal} />
+        <ViewCol>
+          <ViewSearchFilter
+            searchLabel="검색"
+            filters={filters}
+            onChange={handleSearchFilter}
+            onSearch={handleSearch}
+            onRegister={handleOpenModal}
+            registerLabel="상품 추가"
+          />
+          <ViewCard>
+            <ViewTable columns={productColumns} data={products} />
+          </ViewCard>
+        </ViewCol>
       </ViewBody>
 
       {/* ✅ 모달은 상태 기반으로 제어 */}

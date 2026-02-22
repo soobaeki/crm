@@ -31,7 +31,7 @@ export default function ViewBody({ children, className = "" }: IProps) {
       overflow-y-auto         /* [이유] 제목은 상단에 고정하고 본문 내용만 독립적으로 스크롤하기 위해 필수 */
 
     /* [추가] 층수 상승 및 여백 확보 */
-      pt-2                         /* [이유] 중요! 정도로 늘려야 카드가 위로 뜰 공간이 생김 */
+                                /* pt-2: [이유] 중요! 정도로 늘려야 카드가 위로 뜰 공간이 생김 */
 
     /* 추가 스타일 */
     ${className}`}

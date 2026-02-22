@@ -4,7 +4,7 @@
 // import
 //////////////////////
 import { useState } from "react";
-import SearchFilter from "../commons/SearchFilter";
+import SearchFilter from "../commons/ViewSearchFilter";
 
 //////////////////////
 // types / interfaces
