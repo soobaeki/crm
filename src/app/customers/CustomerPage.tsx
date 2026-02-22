@@ -6,6 +6,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Customer } from "@/types/customer";
+import { Column } from "@/types/table";
 import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewCol from "@/components/commons/ViewCol";
@@ -74,14 +75,9 @@ export default function CustomerPage() {
   }, [refetch]);
 
   const customerColumns = [
-    { key: "nubmer", label: "순번", width: "70px" },
-    {
-      key: "request",
-      label: "요청사항",
-      align: "left" as const,
-      width: "auto",
-    },
+    { key: "id", label: "순번", width: "70px" },
     { key: "customerName", label: "고객명", width: "70px" },
+    { key: "nickName", label: "닉네임", width: "70px" },
     {
       key: "homePhone",
       label: "집전화",
@@ -89,13 +85,14 @@ export default function CustomerPage() {
       width: "100px",
     },
     {
-      key: "cellPhone",
+      key: "mobilePhone",
       label: "휴대전화",
       align: "center" as const,
       width: "110px",
     },
     { key: "address", label: "주소", width: "200px" },
-  ];
+    { key: "createdAt", label: "생성일시" },
+  ] satisfies Column<Customer>[];
 
   //////////////////////
   // render (JSX)

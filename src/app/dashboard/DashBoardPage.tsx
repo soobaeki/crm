@@ -17,7 +17,9 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { CustomerIssue } from "@/types/customer";
 import { TodaysOrdersCustomers } from "@/types/order";
+import { Column } from "@/types/table";
 import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewContainer from "@/components/commons/ViewContainer";
@@ -111,7 +113,7 @@ export default function DashBoardPage() {
       width: "120px",
     },
     { key: "address", label: "주소", width: "auto" },
-  ];
+  ] satisfies Column<TodaysOrdersCustomers>[];
 
   const customerIssuesColumns = [
     { key: "customerName", label: "고객명", width: "100px" },
@@ -137,7 +139,7 @@ export default function DashBoardPage() {
     { key: "handledBy", label: "처리 담당자", width: "100px" },
     { key: "handledAt", label: "처리 완료 시각", width: "150px" },
     { key: "handlerNote", label: "담당자 메모", width: "200px" },
-  ];
+  ] satisfies Column<CustomerIssue>[];
 
   if (isLoading)
     return <div className="text-centertext-gray-400 p-10">Loading...</div>;
