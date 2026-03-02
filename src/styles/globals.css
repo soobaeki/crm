@@ -12,7 +12,7 @@
 
   /* 3. 네비게이션 전용 */
   --nav-bg: #ffffff; /* [용도] 왼쪽 사이드바나 상단 메뉴바의 전체 배경색 */
-  --nav-hover-bg: #f8fafc; /* [용도] 메뉴 내 그룹 배경, 마우스 호버 시 강조되는 영역 */
+  --nav-hover-bg: #f1f5f9; /* [용도] 메뉴 내 그룹 배경, 마우스 호버 시 강조되는 영역 */
   --nav-hover-text: #0f172a; /* [용도] 마우스 호버 시 텍스트 색 */
 
   /* 4. 비활성 배경 및 텍스트 */
@@ -111,7 +111,7 @@
   }
 
   .btn-base {
-    @apply flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-200 md:w-auto;
+    @apply flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto;
   }
 
   .btn-primary {
@@ -152,4 +152,10 @@
   .animate-fadeIn {
     animation: fadeIn 0.2s ease-out;
   }
+}
+
+/* next.js 로고 없애기 */
+[data-nextjs-dev-indicator],
+[data-nextjs-dev-overlay] {
+  display: none !important;
 }
