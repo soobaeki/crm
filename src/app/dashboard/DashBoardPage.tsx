@@ -150,7 +150,7 @@ export default function DashBoardPage() {
   return (
     <ViewContainer>
       {/* 제목 */}
-      <ViewTitle>대시보드</ViewTitle>
+      <ViewTitle>현황</ViewTitle>
 
       {/* 본문 */}
       <ViewBody>
@@ -181,7 +181,6 @@ export default function DashBoardPage() {
             trend="+4%"
           />
         </ViewRow>
-
         {/* 중간 차트 및 주요 지표 */}
         <ViewRow cols={2}>
           <ViewCard title="지역별 고객 분포">

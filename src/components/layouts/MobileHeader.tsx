@@ -10,7 +10,7 @@ interface IProps {
 export default function MobileHeader({ open, onOpen }: IProps) {
   return (
     <header
-      className={`bg-nav-bg border-border sticky top-0 z-50 flex h-16 items-center gap-4 px-4 md:hidden ${open ? "border-nav-bg" : "border-b"}`}
+      className={`border-border sticky top-0 z-50 flex h-16 items-center gap-4 px-4 lg:hidden ${open ? "border-nav-bg" : "border-b"}`}
     >
       <button onClick={onOpen} className="text-foreground">
         <Bars3Icon className="h-6 w-6" />
@@ -21,7 +21,7 @@ export default function MobileHeader({ open, onOpen }: IProps) {
             <CubeIcon className="h-6 w-6 text-white" />
           </div>
           <span className="text-primary ml-3 text-xl font-black tracking-tighter uppercase">
-            CRM SYSTEM
+            고객 관리 시스템
           </span>
         </div>
       )}

@@ -46,7 +46,7 @@ export default function ViewRow({
         /* 4. 자식 요소 조절 */
         justify-items-stretch         /* [이유] Row 안의 각 요소가 주어진 칸 너비를 꽉 채우도록 강제함 */
         items-start                   /* [이유] 추가: 자식들의 높이가 제각각일 때 위쪽 라인을 맞춰 깔끔하게 정렬 */
-        
+
         /* 5. 애니메이션 및 추가 스타일 */
         animate-fadeIn                /* [이유] 추가: global.css에 정의된 페이드인 효과로 부드러운 화면 전환 제공 */
         ${className}`}

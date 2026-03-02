@@ -37,25 +37,24 @@ export default function ViewCard({
     // prettier-ignore
     <div className={`
       /* 1. 레이아웃 및 기반 설정 */
+      relative
       min-w-0
-      flex flex-col gap-4           /* [이유] 내부 요소를 세로로 배치하고 요소 간 16px 간격을 일정하게 유지함 */
-      w-full bg-white p-6           /* [이유] 가로를 꽉 채우고 배경은 흰색, 내부엔 24px의 충분한 여백을 부여함 */
-      rounded-xl border border-border /* [이유] 모서리를 부드럽게 깎고 시스템 구분선 컬러(--border)로 디자인 통일감을 줌 */
-      h-full                        /* [이유] 데이터 양과 상관없이 부모(ViewRow) 높이에 맞춰 옆 카드와 높이를 동기화함 */
+      flex flex-col gap-4                  /* [이유] 내부 요소를 세로로 배치하고 요소 간 16px 간격을 일정하게 유지함 */
+      w-full bg-background p-6             /* [이유] 가로를 꽉 채우고 배경은 흰색, 내부엔 24px의 충분한 여백을 부여함 */
+      rounded-xl border border-border      /* [이유] 모서리를 부드럽게 깎고 시스템 구분선 컬러(--border)로 디자인 통일감을 줌 */
+      h-full                               /* [이유] 데이터 양과 상관없이 부모(ViewRow) 높이에 맞춰 옆 카드와 높이를 동기화함 */
 
       /* 2. 그림자 및 애니메이션 */
       shadow-[0_2px_10px_rgba(0,0,0,0.04)] /* [이유] 평상시 아주 은은한 그림자로 깔끔함 유지 */
-      transition-all duration-300      /* [이유] 호버 시 0.3초의 부드러운 움직임 제공 */
+      transition-all duration-300 ease-out /* [이유] 호버 시 0.3초의 부드러운 움직임 제공 */
 
       /* 3. 호버 인터랙션 (공중 부양 효과) */
-      hover:z-100                      /* [이유] 마우스 올린 카드만 최상단 층(z-50)으로 올려서 옆 카드 위로 띄움 */
-      hover:-translate-y-2             /* [이유] 위로 8px 이동시켜 입체감 극대화 */
-      hover:border-primary/40          /* [이유] 테두리를 브랜드 컬러로 강조 */
-      hover:shadow-xl                  /* [이유] 높이 뜬 만큼 그림자를 크고 부드럽게 확산 */
-      hover:rounded-xl
+      hover:z-100                          /* [이유] 마우스 올린 카드만 최상단 층(z-50)으로 올려서 옆 카드 위로 띄움 */
+      hover:border-primary/40              /* [이유] 테두리를 브랜드 컬러로 강조 */
+      hover:shadow-xl                      /* [이유] 높이 뜬 만큼 그림자를 크고 부드럽게 확산 */
       
       /* 4. 클릭 피드백 */
-      active:scale-[0.98]              /* [이유] 클릭 시 살짝 작아지게 하여 '눌리는' 물리적 느낌 전달 */
+      active:scale-[0.98]                  /* [이유] 클릭 시 살짝 작아지게 하여 '눌리는' 물리적 느낌 전달 */
 
     /* 추가 스타일 */
     ${className}`}
