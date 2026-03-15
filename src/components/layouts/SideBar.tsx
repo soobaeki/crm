@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CubeIcon,
-  DocumentIcon,
   HomeIcon,
   ShieldExclamationIcon,
   UserCircleIcon,
@@ -15,15 +14,13 @@ const navigation = [
   { name: "현황", href: "/dashboard", icon: HomeIcon },
   { name: "고객", href: "/customers", icon: UsersIcon },
   { name: "상품", href: "/products", icon: CubeIcon },
-  { name: "엑셀", href: "/excel", icon: DocumentIcon },
   {
     name: "관리자",
     href: "/admin",
     icon: ShieldExclamationIcon,
     children: [
-      { label: "대시보드", href: "/admin" },
-      { label: "고객 데이터", href: "/admin/data/customers" },
-      { label: "주문 데이터", href: "/admin/data/orders" },
+      { label: "고객 데이터", href: "/admin/customers" },
+      { label: "주문 데이터", href: "/admin/orders" },
     ],
   },
 ];

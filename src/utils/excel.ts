@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import Papa from "papaparse";
 import { RowData } from "@/types/excel";
+import { Column } from "@/types/table";
 
 // 헤더 → RowData 키 매핑
 const headerMap: Record<string, keyof RowData> = {
@@ -142,17 +143,17 @@ export async function readFile(file: File): Promise<RowData[]> {
  */
 export async function downloadExcel(
   data: RowData[],
-  label: Record<keyof RowData, string>,
+  columns: Column<RowData>[],
 ) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Sheet1");
 
   // 헤더 설정
-  const headers = Object.keys(label).map((key) => ({
-    header: label[key as keyof RowData],
-    key,
+  sheet.columns = columns.map((col) => ({
+    header: col.label,
+    key: col.key,
+    width: col.width ? Number(col.width.replace("px", "")) / 7 : undefined, // default 약 64px = 8.43
   }));
-  sheet.columns = headers;
 
   // 데이터 추가
   data.forEach((row) => sheet.addRow(row));

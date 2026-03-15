@@ -1,9 +1,5 @@
-import AdminPage from "./AdminPage";
+import { redirect } from "next/navigation";
 
-export default function page({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flxed h-full gap-6">
-      <AdminPage children={children} />
-    </div>
-  );
+export default function Page() {
+  redirect("/admin/customers");
 }

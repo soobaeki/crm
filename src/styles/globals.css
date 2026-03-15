@@ -27,6 +27,11 @@
   --table-header-bg: #f8fafc;
   --table-header-text: #64748b;
   --table-hover: #f1f5f9;
+
+  /* 7. 기타색 */
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
 }
 
 /* Design Tokens */
@@ -57,6 +62,11 @@
   --color-table-header-bg: var(--table-header-bg);
   --color-table-header-text: var(--table-header-text);
   --color-table-hover: var(--table-hover);
+
+  /* 7. 기타색 */
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
 }
 
 @layer components {
@@ -74,15 +84,15 @@
   }
 
   .table-header-cell {
-    @apply bg-table-header-bg/80 text-table-header-text border-border sticky top-0 z-10 border-b px-4 py-3 text-[12px] font-bold tracking-wider uppercase backdrop-blur-sm transition-colors;
+    @apply hover:bg-table-hover text-table-header-text bg-table-header-bg cursor-pointer px-4 py-3 text-center text-[13px] font-semibold whitespace-nowrap transition-colors;
   }
 
   .table-body-row {
-    @apply hover:bg-table-hover/50 transition-colors;
+    @apply hover:bg-table-hover cursor-pointer transition-colors;
   }
 
   .table-body-cell {
-    @apply border-border text-foreground/80 border-b px-5 py-4 text-[14px];
+    @apply border-border text-foreground/80 px-4 py-3;
   }
 
   .pagination-wrapper {

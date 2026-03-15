@@ -1,6 +1,7 @@
 import { RowData, SkippedRow } from "@/types/excel";
 import { IExcelSearchFilter } from "@/types/filter";
 import { prisma } from "@/lib/prisma";
+import { formatDate } from "@/utils/formatters";
 
 export async function postUploadExcelServer(rows: RowData[]) {
   const skippedRows: SkippedRow[] = [];
@@ -85,7 +86,7 @@ export async function postUploadExcelServer(rows: RowData[]) {
             product_id: product.id,
             product_name_snapshot: product.name, // snapshot
             unit_price_snapshot: product.price,
-            quantity: row.quantity,
+            quantity: row.quantity || 0,
             line_total: totalAmount,
             discount: 0,
             tax: 0,
@@ -190,7 +191,7 @@ export async function getSearchExcelListServer(params: IExcelSearchFilter) {
       order.order_items.forEach((item) => {
         rowData.push({
           id: order.id,
-          orderDate: order.order_date?.toISOString().split("T")[0] ?? null,
+          orderDate: formatDate(order.order_date),
           item: item.product_name_snapshot,
           weight: item.products?.weight ?? null,
           quantity: item.quantity,
@@ -199,9 +200,7 @@ export async function getSearchExcelListServer(params: IExcelSearchFilter) {
           mobilePhone: order.customer.mobile_phone,
           customerName: order.customer.customer_name,
           paymentAmount: order.total_amount,
-          paymentDate:
-            order.updated_at?.toISOString().split("T")[0] ??
-            new Date().toISOString().split("T")[0],
+          paymentDate: formatDate(order.updated_at),
           payer: order.customer.nick_name,
           notes: order.customer.address,
         });

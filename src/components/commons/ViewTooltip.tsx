@@ -22,7 +22,7 @@ export default function ViewTooltip({ children, content }: IProps) {
     // 요소의 중앙 하단에 위치하도록 설정 (스크롤 위치 포함)
     setCoords({
       x: rect.left + rect.width / 2 + window.scrollX,
-      y: rect.bottom + window.scrollY,
+      y: rect.bottom + window.scrollY + 8,
     });
     setVisible(true);
   };
@@ -42,7 +42,7 @@ export default function ViewTooltip({ children, content }: IProps) {
           <div
             className={`
               /* 1. 기본 스타일 및 테마 */
-              fixed z-9999            /* [이유] 레이어의 최상단에 위치시켜 다른 요소에 가려지지 않음 */
+              fixed z-50              /* [이유] 레이어의 최상단에 위치시켜 다른 요소에 가려지지 않음 */
               pointer-events-none     /* [이유] 툴팁이 마우스 포인터를 방해하여 깜빡거리는 현상 방지 */
               bg-foreground           /* [이유] global.css의 메인 텍스트색을 배경으로 써서 반전 효과 부여 */
               text-background         /* [이유] 배경과 대비되는 글자색으로 가독성 확보 */
@@ -60,7 +60,7 @@ export default function ViewTooltip({ children, content }: IProps) {
               animate-fadeIn          /* [이유] global.css에 정의된 효과로 부드럽게 등장 */
               
               /* 4. 가독성 설정 */
-              break-all               /* [이유] 긴 단어나 URL이 들어와도 영역을 벗어나지 않게 줄바꿈 */
+              wrap-break-word               /* [이유] 긴 단어나 URL이 들어와도 영역을 벗어나지 않게 줄바꿈 */
               whitespace-normal       /* [이유] 여러 줄의 텍스트도 자연스럽게 수용 */
             `}
             style={{

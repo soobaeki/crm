@@ -88,7 +88,7 @@ export default function ViewTable<T extends object>({
   });
 
   const { pageIndex, pageSize } = table.getState().pagination;
-  const totalCount = data?.length || 0;
+  const totalCount = data.length || 0;
 
   // 옵션 배열을 변수로 만들어서 initialPageSize가 목록에 없으면 추가해주는 방식
   const sizeOptions = useMemo(
@@ -100,20 +100,24 @@ export default function ViewTable<T extends object>({
   );
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden">
+    <div className="flex w-full flex-col overflow-hidden">
       {/* 1. 테이블 섹션 */}
-      <div className="flex-1 overflow-x-auto">
-        <table className="min-w-full table-fixed border-separate border-spacing-0">
-          <thead className="bg-muted/50 sticky top-0 z-10 border-b">
+      <div className="min-w-0 flex-1 overflow-x-auto">
+        <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as any;
+                  const meta = header.column.columnDef.meta as {
+                    align?: "left" | "center" | "right";
+                    width?: string;
+                  };
+                  const isCustomerName = header.column.id === "customerName";
                   return (
                     <th
                       key={header.id}
-                      style={{ width: meta.width }}
-                      className={`text-table-header-text cursor-pointer px-4 py-3 text-center text-[13px] font-semibold whitespace-nowrap transition-colors`}
+                      style={{ width: meta?.width }}
+                      className={`table-header-cell ${isCustomerName ? "bg-table-header-bg border-border sticky left-0 z-20 border-r" : ""}`}
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       <div className="flex items-center justify-center gap-1">
@@ -150,23 +154,24 @@ export default function ViewTable<T extends object>({
               <LoadingSkeleton colSpan={columns.length} />
             ) : table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="hover:bg-muted/30 cursor-pointer transition-colors"
-                >
+                <tr key={row.id} className="table-body-row">
                   {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as any;
+                    const meta = cell.column.columnDef.meta as {
+                      align?: "left" | "center" | "right";
+                      width?: string;
+                    };
+                    const isCustomerName = cell.column.id === "customerName";
                     return (
                       <td
                         key={cell.id}
                         style={{
                           // 1. 전달받은 width를 그대로 적용 (px 혹은 auto)
-                          width: meta.width,
+                          width: meta?.width,
                           // 2. auto일 때 무한정 늘어나는 것을 방지하기 위한 안전장치
                           maxWidth:
-                            meta.width === "auto" ? "250px" : meta.width,
+                            meta?.width === "auto" ? "250px" : undefined,
                         }}
-                        className={`group text-table-header-text/120 relative px-5 py-5 ${
+                        className={`table-body-cell ${isCustomerName ? "bg-background border-border hover:bg-table-hover sticky left-0 z-10 overflow-visible border-r" : ""} ${
                           meta.align === "center"
                             ? "text-center"
                             : meta.align === "right"
@@ -175,7 +180,7 @@ export default function ViewTable<T extends object>({
                         }`}
                       >
                         <ViewTooltip content={String(cell.getValue() ?? "-")}>
-                          <div className="cursor-pointer truncate transition-colors">
+                          <div className="cursor-pointer truncate overflow-hidden">
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),
@@ -346,7 +351,7 @@ function PaginationBtn({
 }) {
   return (
     <button
-      className="hover:bg-muted text-foreground/60 flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-all active:scale-90 disabled:cursor-not-allowed disabled:opacity-20"
+      className="hover:bg-muted text-foreground/60 flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition-transform active:scale-90 disabled:cursor-not-allowed disabled:opacity-20"
       onClick={onClick}
       disabled={disabled}
     >

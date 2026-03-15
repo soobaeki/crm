@@ -34,3 +34,8 @@ export function formatNumber(
   if (isNaN(num)) return "-"; // 숫자로 변환 불가면 "-"
   return num.toLocaleString("ko-KR");
 }
+
+// Date -> YYYY-MM-DD
+export function formatDate(date?: Date | null) {
+  return date ? date.toISOString().split("T")[0] : null;
+}

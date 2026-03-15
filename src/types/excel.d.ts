@@ -3,11 +3,11 @@
  * 실제 DB 컬럼과 매칭, null 가능
  */
 export type RowData = {
-  id: number | null; // 순번 (order_items.id)
+  id?: number; // 순번 (order_items.id)
   orderDate: string | null; // 주문일자 (orders.order_date)
   item: string | null; // 품목 (products.name / product_name_snapshot)
   weight: number | null; // 무게 (products.weight)
-  quantity: number; // 수량 (order_items.quantity)
+  quantity: number | null; // 수량 (order_items.quantity)
   address: string | null; // 주소 (shipping_address.address_line1 + address_line2)
   homePhone: string | null; // 집전화 (customers.home_phone)
   mobilePhone: string | null; // 휴대전화 (customers.mobile_phone)
