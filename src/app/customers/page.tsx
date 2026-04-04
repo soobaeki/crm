@@ -11,92 +11,96 @@ import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewCol from "@/components/commons/ViewCol";
 import { default as ViewContainer } from "@/components/commons/ViewContainer";
+import ViewModal from "@/components/commons/ViewModal";
 import ViewSearchFilter from "@/components/commons/ViewSearchFilter";
 import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
+import CustomerModal from "@/components/customers/CustomerModel";
 import { getCustomers } from "@/lib/customer/customer.api";
-import CustomerModal from "../../components/customers/CustomerModel";
 
-//////////////////////
-// component start
-//////////////////////
+const customerColumns = [
+  { key: "index", label: "순번", width: "70px" },
+  { key: "id", label: "순번", width: "70px", hide: true },
+  { key: "customerName", label: "고객명", width: "100px" },
+  { key: "nickName", label: "닉네임", width: "100px" },
+  {
+    key: "homePhone",
+    label: "집전화",
+    width: "200px",
+  },
+  {
+    key: "mobilePhone",
+    label: "휴대전화",
+    width: "200px",
+  },
+  { key: "address", label: "주소", align: "left" as const },
+  { key: "createdAt", label: "생성일시", width: "120px" },
+] satisfies Column<Customer>[];
+
 export default function Page() {
-  //////////////////////
-  // state & query
-  //////////////////////
+  /* -------------------------------------------------------------------------- */
+  /* 1. State & Queries                                                         */
+  /* -------------------------------------------------------------------------- */
   const [filters, setFilters] = useState({
     startDate: "",
     // startDate: dayjs().format("YYYY-MM-DD"),
     endDate: "",
     searchText: "",
   });
-
-  // 모달 제어를 위한 상태
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: customers = [], refetch } = useQuery<Customer[]>({
-    queryKey: ["customers"],
+  // 고객 리스트 조회 (enabled: false로 초기 로딩 제어 가능)
+  const {
+    data: customers = [],
+    refetch,
+    isFetching,
+  } = useQuery<Customer[]>({
+    queryKey: ["customers", filters.startDate, filters.endDate],
     queryFn: () => getCustomers(filters.startDate, filters.endDate),
     enabled: false,
   });
 
-  //////////////////////
-  // derived data (useMemo)
-  //////////////////////
+  /* -------------------------------------------------------------------------- */
+  /* 2. Memoized Data (Search)                                                  */
+  /* -------------------------------------------------------------------------- */
   const filteredCustomers = useMemo(() => {
-    const searchText = filters.searchText?.replace(/\s/g, "").toLowerCase();
-    if (!searchText) return customers;
+    const term = filters.searchText?.replace(/\s/g, "").toLowerCase();
+    if (!term) return customers;
 
     return customers.filter((c) =>
       [c.customerName, c.nickName, c.mobilePhone, c.homePhone, c.address].some(
-        (field) => field?.toLowerCase().includes(searchText),
+        (field) => field?.toLowerCase().includes(term),
       ),
     );
   }, [customers, filters.searchText]);
 
-  //////////////////////
-  // handlers (useCallback)
-  //////////////////////
-  const handleSearchFilter = useCallback(
-    async (newFilters: Partial<typeof filters>) => {
-      const updatedFilters = { ...filters, ...newFilters };
-
-      setFilters(updatedFilters);
+  /* -------------------------------------------------------------------------- */
+  /* 3. Event Handlers (Business Logic)                                         */
+  /* -------------------------------------------------------------------------- */
+  const handleUpdateFilters = useCallback(
+    (newFilters: Partial<typeof filters>) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
     },
-    [filters, refetch],
+    [],
   );
 
-  // 조회 버튼 클릭 시 실행될 함수
   const handleSearch = useCallback(async () => {
     await refetch();
   }, [refetch]);
 
-  const customerColumns = [
-    { key: "id", label: "순번", width: "70px" },
-    { key: "customerName", label: "고객명", width: "70px" },
-    { key: "nickName", label: "닉네임", width: "70px" },
-    {
-      key: "homePhone",
-      label: "집전화",
-      align: "center" as const,
-      width: "100px",
-    },
-    {
-      key: "mobilePhone",
-      label: "휴대전화",
-      align: "center" as const,
-      width: "110px",
-    },
-    { key: "address", label: "주소", width: "200px" },
-    { key: "createdAt", label: "생성일시" },
-  ] satisfies Column<Customer>[];
+  const handleOpenDetail = useCallback((customer: Customer) => {
+    setSelectedCustomer(customer);
+  }, []);
 
-  //////////////////////
-  // render (JSX)
-  //////////////////////
+  const handleCloseModal = useCallback(() => {
+    setSelectedCustomer(null);
+  }, []);
+
+  /* -------------------------------------------------------------------------- */
+  /* 5. Render                                                                  */
+  /* -------------------------------------------------------------------------- */
   return (
     <ViewContainer>
       {/* 제목 */}
@@ -105,30 +109,40 @@ export default function Page() {
       {/* 본문 */}
       <ViewBody>
         <ViewCol>
+          {/* 상단 필터 영역 */}
           <ViewSearchFilter
             dateLabel="조회기간"
             searchLabel="검색"
             filters={filters}
-            onChange={handleSearchFilter}
+            onChange={handleUpdateFilters}
             onSearch={handleSearch}
-            onRegister={() => setIsModalOpen(true)}
+            onRegister={() => alert("등록 기능 개발 예정")}
             registerLabel="고객 추가"
           />
+
+          {/* 테이블 카드 영역 */}
           <ViewCard className="hover:border-border! transition-none! hover:translate-y-0! hover:shadow-none! active:scale-100!">
             <ViewTable
               columns={customerColumns}
               data={filteredCustomers}
-              initialPageSize={14}
+              initialPageSize={10}
+              onRowClick={handleOpenDetail}
             />
           </ViewCard>
         </ViewCol>
       </ViewBody>
 
-      {/* 모달은 selectedCustomer 존재 여부로 열림/닫힘 결정 */}
-      <CustomerModal
-        customer={selectedCustomer}
-        onClose={() => setSelectedCustomer(null)}
-      />
+      {/* 모달 영역 */}
+      <ViewModal
+        isOpen={!!selectedCustomer}
+        onClose={handleCloseModal}
+        title={
+          selectedCustomer ? `${selectedCustomer.customerName} 님 정보` : ""
+        }
+        size="xl"
+      >
+        {selectedCustomer && <CustomerModal customer={selectedCustomer} />}
+      </ViewModal>
     </ViewContainer>
   );
 }

@@ -92,7 +92,7 @@
   }
 
   .table-body-cell {
-    @apply border-border text-foreground/80 px-4 py-3;
+    @apply border-border text-foreground/80 px-4 py-3 whitespace-nowrap;
   }
 
   .pagination-wrapper {
@@ -138,6 +138,15 @@
 }
 
 @layer base {
+  html {
+    /* [핵심] scrollbar-gutter: stable; 
+       스크롤바가 생겨도 레이아웃이 좌우로 흔들리지 않게 자리를 미리 예약합니다.
+       both-edges를 추가하면 스크롤바가 없을 때도 반대편(왼쪽)에 대칭 여백을 주어 
+       컨텐츠가 항상 정중앙을 유지하게 도와줍니다.
+    */
+    scrollbar-gutter: stable both-edges;
+  }
+
   body {
     @apply bg-background text-foreground leading-relaxed antialiased;
   }
@@ -146,6 +155,13 @@
   h2,
   h3 {
     @apply text-foreground font-bold;
+  }
+
+  /* Safari 등 지원하지 않는 브라우저를 위한 백업 */
+  @supports not (scrollbar-gutter: stable) {
+    html {
+      overflow-y: scroll;
+    }
   }
 }
 

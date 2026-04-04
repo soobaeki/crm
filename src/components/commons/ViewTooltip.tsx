@@ -33,7 +33,7 @@ export default function ViewTooltip({ children, content }: IProps) {
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setVisible(false)}
-      className="inline-block w-full" /* [이유] 텍스트 중간에서도 자연스럽게 배치되도록 설정 */
+      className="block w-full truncate" /* [이유] 텍스트 중간에서도 자연스럽게 배치되도록 설정 */
     >
       {children}
 

@@ -21,6 +21,37 @@ import {
 } from "@/lib/excel/excel.api";
 import { downloadExcel } from "@/utils/excel";
 
+const rowDataColumns = [
+  { key: "id", label: "순번", width: "70px" },
+  { key: "orderDate", label: "주문일자", width: "120px" },
+  { key: "item", label: "품목", width: "100px" },
+  { key: "weight", label: "무게", align: "right" as const, width: "70px" },
+  { key: "quantity", label: "수량", align: "right" as const, width: "70px" },
+  { key: "address", label: "주소", align: "left" as const, width: "500px" },
+  { key: "homePhone", label: "집전화", width: "200px" },
+  { key: "mobilePhone", label: "휴대전화", width: "200px" },
+  { key: "customerName", label: "주문자", width: "100px" },
+  {
+    key: "paymentAmount",
+    label: "입금액",
+    align: "right" as const,
+    width: "120px",
+  },
+  {
+    key: "paymentDate",
+    label: "입금일",
+    align: "right" as const,
+    width: "120px",
+  },
+  { key: "payer", label: "입금자", width: "80px" },
+  {
+    key: "notes",
+    label: "특이사항",
+    align: "left" as const,
+    width: "300px",
+  },
+] satisfies Column<RowData>[];
+
 export default function page() {
   const [filters, setFilters] = useState({
     startDate: "",
@@ -102,37 +133,6 @@ export default function page() {
     if (data.length === 0) return alert("다운로드할 데이터가 없습니다.");
     downloadExcel(data, rowDataColumns);
   };
-
-  const rowDataColumns = [
-    { key: "id", label: "순번", width: "70px" },
-    { key: "orderDate", label: "주문일자", width: "80px" },
-    { key: "item", label: "품목", width: "100px" },
-    { key: "weight", label: "무게", align: "right" as const, width: "70px" },
-    { key: "quantity", label: "수량", align: "right" as const, width: "70px" },
-    { key: "address", label: "주소", align: "left" as const, width: "100px" },
-    { key: "homePhone", label: "집전화", width: "80px" },
-    { key: "mobilePhone", label: "휴대전화", width: "80px" },
-    { key: "customerName", label: "주문자", width: "80px" },
-    {
-      key: "paymentAmount",
-      label: "입금액",
-      align: "right" as const,
-      width: "80px",
-    },
-    {
-      key: "paymentDate",
-      label: "입금일",
-      align: "right" as const,
-      width: "80px",
-    },
-    { key: "payer", label: "입금자", width: "80px" },
-    {
-      key: "notes",
-      label: "특이사항",
-      align: "left" as const,
-      width: "100px",
-    },
-  ] satisfies Column<RowData>[];
 
   // render (JSX)
   return (

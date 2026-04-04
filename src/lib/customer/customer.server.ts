@@ -2,6 +2,7 @@ import { Prisma, customers } from "@prisma/client/edge";
 import { Customer, CustomerFormInput } from "@/types/customer";
 import { prisma } from "@/lib/prisma";
 import { safeDecryptGCM } from "@/utils/crypto";
+import { formatDate, formatPhone } from "@/utils/formatters";
 import { encryptGCM } from "../crypto/crypto";
 
 // GET 메서드: 고객 목록 조회
@@ -19,14 +20,15 @@ export async function getCustomers(
   const customers: customers[] = await prisma.customers.findMany({ where });
 
   // 복호화 처리
-  return customers.map((customer) => ({
+  return customers.map((customer, index) => ({
+    index: index + 1,
     id: customer.id,
     customerName: safeDecryptGCM(customer.customer_name) ?? "",
     nickName: customer.nick_name ?? "",
-    homePhone: safeDecryptGCM(customer.home_phone) ?? "",
-    mobilePhone: safeDecryptGCM(customer.mobile_phone) ?? "",
+    homePhone: formatPhone(safeDecryptGCM(customer.home_phone) ?? ""),
+    mobilePhone: formatPhone(safeDecryptGCM(customer.mobile_phone) ?? ""),
     address: customer.address ?? "",
-    createdAt: customer.created_at?.toISOString() ?? "",
+    createdAt: formatDate(customer.created_at) ?? "",
   }));
 }
 
@@ -114,11 +116,11 @@ export async function getCustomerIssues() {
   const result = issues.map((issue) => ({
     customerName: issue.customers.customer_name,
     content: issue.content,
-    createdAt: issue.created_at?.toLocaleDateString("ko-KR"),
+    createdAt: formatDate(issue.created_at),
     status: issue.status,
     priority: issue.priority,
     handledBy: issue.handled_by,
-    handledAt: issue.handled_at?.toLocaleDateString("ko-KR"),
+    handledAt: formatDate(issue.handled_at),
     handlerNote: issue.handler_note,
   }));
 

@@ -1,4 +1,5 @@
 export interface Customer {
+  index: number; // 채번
   id: number; // 자동 증가하는 고유 ID
   customerName: string; // 고객 이름
   nickName?: string | null; // 닉네임 (옵셔널)
@@ -40,3 +41,7 @@ export interface CustomerIssue {
   handledAt: string;
   handlerNote: string;
 }
+
+// 1. 모달의 상태 타입을 정의합니다.
+// 실무에서는 보통 '등록(CREATE)', '상세보기(READ)', '수정(UPDATE)' 정도로 나눕니다.
+export type CustomerModalMode = "CREATE" | "READ" | "UPDATE";

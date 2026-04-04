@@ -4,5 +4,6 @@ export interface Column<T> {
   align?: "left" | "center" | "right";
   sortable?: boolean;
   width?: string;
+  hide?: boolean;
   render?: (row: T) => React.ReactNode;
 }

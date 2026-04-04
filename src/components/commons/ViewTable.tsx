@@ -34,7 +34,8 @@ interface IProps<T> {
   columns: Column<T>[];
   data: T[];
   isLoading?: boolean;
-  initialPageSize?: number; // 초기 페이지당 로우 수
+  initialPageSize?: number;
+  onRowClick?: (row: T) => void; // + 추가: 행 클릭 이벤트 핸들러
 }
 
 export default function ViewTable<T extends object>({
@@ -42,35 +43,28 @@ export default function ViewTable<T extends object>({
   data,
   isLoading,
   initialPageSize = 10,
+  onRowClick,
 }: IProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // 1. TanStack Table용 컬럼 정의
   const tableColumns = useMemo<ColumnDef<T>[]>(
     () =>
-      columns.map((col) => ({
-        accessorKey: col.key as string,
-        header: col.label,
-        enableSorting: col.sortable !== false,
-        cell: (info) => {
-          const row = info.row.original;
-
-          if (col.render) {
-            return col.render(row);
-          }
-
-          const value = info.getValue();
-
-          if (value === undefined || value === null) return "-";
-
-          if (typeof value === "number") {
-            return value.toLocaleString();
-          }
-
-          return String(value);
-        },
-        meta: { align: col.align ?? "center", width: col.width ?? "auto" },
-      })),
+      columns
+        .filter((col) => !col.hide)
+        .map((col) => ({
+          accessorKey: col.key as string,
+          header: col.label,
+          enableSorting: col.sortable !== false,
+          cell: (info) => {
+            const row = info.row.original;
+            if (col.render) return col.render(row);
+            const value = info.getValue();
+            if (value === undefined || value === null) return "-";
+            if (typeof value === "number") return value.toLocaleString();
+            return String(value);
+          },
+          meta: { align: col.align ?? "center", width: col.width ?? "auto" },
+        })),
     [columns],
   );
 
@@ -90,7 +84,6 @@ export default function ViewTable<T extends object>({
   const { pageIndex, pageSize } = table.getState().pagination;
   const totalCount = data.length || 0;
 
-  // 옵션 배열을 변수로 만들어서 initialPageSize가 목록에 없으면 추가해주는 방식
   const sizeOptions = useMemo(
     () =>
       Array.from(new Set([initialPageSize, 10, 20, 30, 50])).sort(
@@ -101,22 +94,36 @@ export default function ViewTable<T extends object>({
 
   return (
     <div className="flex w-full flex-col overflow-hidden">
-      {/* 1. 테이블 섹션 */}
       <div className="min-w-0 flex-1 overflow-x-auto">
-        <table className="w-full min-w-max table-fixed border-separate border-spacing-0">
+        {/* table-fixed가 있어야 너비 고정이 먹힙니다 */}
+        <table className="w-full table-fixed border-separate border-spacing-0">
+          <colgroup>
+            {table.getVisibleFlatColumns().map((column) => {
+              const meta = column.columnDef.meta as { width?: string };
+              return (
+                <col key={column.id} style={{ width: meta?.width || "auto" }} />
+              );
+            })}
+          </colgroup>
           <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as {
-                    align?: "left" | "center" | "right";
                     width?: string;
                   };
                   const isCustomerName = header.column.id === "customerName";
+
                   return (
                     <th
                       key={header.id}
-                      style={{ width: meta?.width }}
+                      style={{
+                        // width가 "auto"라면 "100%"를 주어 남은 공간을 다 먹게 합니다.
+                        width: meta?.width === "auto" ? "100%" : meta?.width,
+                        // [핵심] "auto"일 때는 maxWidth를 해제해야 꽉 찹니다.
+                        // 고정 너비(px)일 때만 말줄임을 위해 maxWidth를 제한합니다.
+                        maxWidth: meta?.width === "auto" ? "none" : meta?.width,
+                      }}
                       className={`table-header-cell ${isCustomerName ? "bg-table-header-bg border-border sticky left-0 z-20 border-r" : ""}`}
                       onClick={header.column.getToggleSortingHandler()}
                     >
@@ -125,7 +132,6 @@ export default function ViewTable<T extends object>({
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                        {/* 정렬 아이콘 */}
                         {header.column.getCanSort() && (
                           <span className="text-table-header-text">
                             {{
@@ -148,30 +154,42 @@ export default function ViewTable<T extends object>({
             ))}
           </thead>
 
-          {/* 2. 본문 섹션 */}
           <tbody className="divide-y">
             {isLoading ? (
               <LoadingSkeleton colSpan={columns.length} />
             ) : table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="table-body-row">
+                <tr
+                  key={row.id}
+                  className="table-body-row"
+                  onClick={() => onRowClick?.(row.original)}
+                >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as {
                       align?: "left" | "center" | "right";
                       width?: string;
                     };
                     const isCustomerName = cell.column.id === "customerName";
+
                     return (
                       <td
                         key={cell.id}
                         style={{
-                          // 1. 전달받은 width를 그대로 적용 (px 혹은 auto)
-                          width: meta?.width,
-                          // 2. auto일 때 무한정 늘어나는 것을 방지하기 위한 안전장치
+                          // 1. th와 똑같이 "남는 공간 다 내꺼" 선언
+                          width: meta?.width === "auto" ? "100%" : meta?.width,
+                          // 2. auto일 때는 한계를 두지 말아야 꽉 찹니다.
+                          // 반대로 px 값이 있을 때는 그 너비만큼만 딱 고정해야 말줄임이 예쁘게 먹힙니다.
                           maxWidth:
-                            meta?.width === "auto" ? "250px" : undefined,
+                            meta?.width === "auto" ? "none" : meta?.width,
+                          overflow: "hidden", // 넘치는 내용 숨김
+                          textOverflow: "ellipsis", // [핵심] 말줄임표 활성화
+                          whiteSpace: "nowrap", // [핵심] 줄바꿈 방지
                         }}
-                        className={`table-body-cell ${isCustomerName ? "bg-background border-border hover:bg-table-hover sticky left-0 z-10 overflow-visible border-r" : ""} ${
+                        className={`table-body-cell overflow-hidden ${
+                          isCustomerName
+                            ? "bg-background border-border hover:bg-table-hover sticky left-0 z-10 border-r"
+                            : ""
+                        } ${
                           meta.align === "center"
                             ? "text-center"
                             : meta.align === "right"
@@ -180,7 +198,8 @@ export default function ViewTable<T extends object>({
                         }`}
                       >
                         <ViewTooltip content={String(cell.getValue() ?? "-")}>
-                          <div className="cursor-pointer truncate overflow-hidden">
+                          {/* [핵심 2] w-full, truncate, block을 사용하여 말줄임 강제 적용 */}
+                          <div className="block w-full cursor-pointer truncate">
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),
@@ -199,11 +218,11 @@ export default function ViewTable<T extends object>({
         </table>
       </div>
 
-      {/* 3. 페이지네이션 섹션 */}
+      {/* 페이지네이션 (코드 동일) */}
       {!isLoading && totalCount > 0 && (
         <div className="border-border bg-background flex flex-col gap-3 border-t pt-4 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="text-foreground/60 text-sm">
-            전체 <span className="text-foreground font-bold">{totalCount}</span>
+            전체 <span className="text-foreground font-bold">{totalCount}</span>{" "}
             개 항목
           </div>
 
@@ -215,14 +234,12 @@ export default function ViewTable<T extends object>({
               >
                 <ChevronDoubleLeftIcon className="h-4 w-4" />
               </PaginationBtn>
-
               <PaginationBtn
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
                 <ChevronLeftIcon className="h-4 w-4" />
               </PaginationBtn>
-
               <div className="flex items-center px-4 text-sm font-medium">
                 <span className="text-primary font-bold">{pageIndex + 1}</span>
                 <span className="text-foreground/20 mx-1.5">/</span>
@@ -230,7 +247,6 @@ export default function ViewTable<T extends object>({
                   {table.getPageCount()}
                 </span>
               </div>
-
               <PaginationBtn
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
@@ -244,7 +260,6 @@ export default function ViewTable<T extends object>({
                 <ChevronDoubleRightIcon className="h-4 w-4" />
               </PaginationBtn>
             </div>
-            {/* 개선된 Listbox 기반의 페이지 사이즈 선택기 */}
             <div className="w-32">
               <Listbox
                 value={pageSize}
@@ -272,11 +287,7 @@ export default function ViewTable<T extends object>({
                           key={size}
                           value={size}
                           className={({ active, selected }) =>
-                            `relative cursor-pointer py-2 pr-4 pl-10 transition-colors select-none ${
-                              active
-                                ? "bg-muted text-primary"
-                                : "text-foreground"
-                            } ${selected ? "font-bold" : "font-normal"}`
+                            `relative cursor-pointer py-2 pr-4 pl-10 transition-colors select-none ${active ? "bg-muted text-primary" : "text-foreground"} ${selected ? "font-bold" : "font-normal"}`
                           }
                         >
                           {({ selected }) => (
@@ -286,14 +297,14 @@ export default function ViewTable<T extends object>({
                               >
                                 {size}개씩
                               </span>
-                              {selected ? (
+                              {selected && (
                                 <span className="text-primary absolute inset-y-0 left-0 flex items-center pl-3">
                                   <CheckIcon
                                     className="h-4 w-4"
                                     aria-hidden="true"
                                   />
                                 </span>
-                              ) : null}
+                              )}
                             </>
                           )}
                         </ListboxOption>

@@ -102,9 +102,9 @@ export default function DashBoardPage() {
   };
 
   const todayOrdersColumns = [
+    { key: "customerName", label: "고객명", width: "100px" },
     { key: "orderDate", label: "주문일자", width: "120px" },
-    { key: "customerName", label: "이름", width: "100px" },
-    { key: "productName", label: "상품명", width: "auto" },
+    { key: "productName", label: "상품명", width: "100px" },
     { key: "quantity", label: "수량", align: "right" as const, width: "80px" },
     {
       key: "totalPrice",
@@ -112,7 +112,7 @@ export default function DashBoardPage() {
       align: "right" as const,
       width: "120px",
     },
-    { key: "address", label: "주소", width: "auto" },
+    { key: "address", label: "주소", width: "500px" },
   ] satisfies Column<TodaysOrdersCustomers>[];
 
   const customerIssuesColumns = [
@@ -121,9 +121,9 @@ export default function DashBoardPage() {
       key: "content",
       label: "요청사항",
       align: "left" as const,
-      width: "auto",
+      width: "500px",
     },
-    { key: "createdAt", label: "요청일시", width: "150px" },
+    { key: "createdAt", label: "요청일시", width: "120px" },
     {
       key: "status",
       label: "진행상태",
@@ -134,11 +134,11 @@ export default function DashBoardPage() {
       key: "priority",
       label: "요청 우선순위",
       align: "center" as const,
-      width: "120px",
+      width: "100px",
     },
     { key: "handledBy", label: "처리 담당자", width: "100px" },
-    { key: "handledAt", label: "처리 완료 시각", width: "150px" },
-    { key: "handlerNote", label: "담당자 메모", width: "200px" },
+    { key: "handledAt", label: "처리 완료 시각", width: "120px" },
+    { key: "handlerNote", label: "담당자 메모", width: "300px" },
   ] satisfies Column<CustomerIssue>[];
 
   if (isLoading)

@@ -5,7 +5,7 @@
 //////////////////////
 import { useState } from "react";
 import { Product } from "@/types/product";
-import Modal from "@/components/commons/Modal";
+import Modal from "@/components/commons/ViewModal";
 
 //////////////////////
 // types / interfaces
