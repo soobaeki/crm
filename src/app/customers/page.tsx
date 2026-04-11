@@ -11,7 +11,6 @@ import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewCol from "@/components/commons/ViewCol";
 import { default as ViewContainer } from "@/components/commons/ViewContainer";
-import ViewModal from "@/components/commons/ViewModal";
 import ViewSearchFilter from "@/components/commons/ViewSearchFilter";
 import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
@@ -133,16 +132,14 @@ export default function Page() {
       </ViewBody>
 
       {/* 모달 영역 */}
-      <ViewModal
-        isOpen={!!selectedCustomer}
-        onClose={handleCloseModal}
-        title={
-          selectedCustomer ? `${selectedCustomer.customerName} 님 정보` : ""
-        }
-        size="xl"
-      >
-        {selectedCustomer && <CustomerModal customer={selectedCustomer} />}
-      </ViewModal>
+      {selectedCustomer && (
+        <CustomerModal
+          customer={selectedCustomer}
+          isOpen={!!selectedCustomer}
+          onClose={() => setSelectedCustomer(null)}
+          onRefresh={refetch}
+        />
+      )}
     </ViewContainer>
   );
 }

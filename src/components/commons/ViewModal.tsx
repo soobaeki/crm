@@ -75,7 +75,7 @@ export default function ViewModal({
   return (
     // 배경 레이어 (Backdrop) - global.css의 animate-fadeIn 사용
     <div
-      className="bg-foreground/30 animate-fadeIn fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-xs"
+      className="bg-foreground/30 animate-fadeIn fixed inset-0 z-100 flex items-center justify-center p-4 backdrop-blur-xs"
       onClick={onClose} // 배경 클릭 시 닫기
     >
       <div
@@ -85,7 +85,7 @@ export default function ViewModal({
       >
         {/* 헤더 영역 (Header) */}
         <div className="border-border bg-background flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-foreground text-xl font-bold tracking-tight italic">
+          <h2 className="text-foreground text-xl font-bold tracking-tight">
             {title}
           </h2>
           <button
@@ -123,7 +123,7 @@ export default function ViewModal({
               {/* 취소 버튼 */}
               <button
                 onClick={onCancel || onClose}
-                className="btn-base btn-outline border-muted-foreground! text-muted-foreground! hover:bg-muted-bg!"
+                className="btn-base btn-muted"
               >
                 {onCancel ? cancelLabel : "닫기"}
               </button>

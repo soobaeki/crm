@@ -52,3 +52,15 @@ export interface TodaysOrdersCustomers {
   quantity: number;
   totalPrice: number;
 }
+
+/**
+ * 주문 상품별로 한 줄씩 보여주기 위한 타입
+ * OrderItem(상품정보) + Order(주문정보 일부) 를 합칩니다.
+ */
+export interface OrderItemRow extends OrderItem {
+  // 주문 공통 정보 중 테이블에 필요한 것만 추가
+  status: string;
+  orderDate: Date | null;
+  ordererName: string | null;
+  // (필요하다면 주문 ID도 OrderItem.orderId와 겹치므로 생략 가능)
+}

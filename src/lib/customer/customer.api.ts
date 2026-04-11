@@ -6,6 +6,7 @@ import {
   CustomerStats,
   RegionCustomerCount,
 } from "@/types/customer";
+import { OrderItemRow } from "@/types/order";
 import { callApi } from "@/lib/core";
 import { toQueryString } from "@/utils/url";
 
@@ -88,6 +89,44 @@ export async function getCustomerIssues(): Promise<CustomerIssue[]> {
   const res = await callApi<undefined, CustomerIssue[]>(
     "/api/customer/actions/issue",
     "GET",
+  );
+
+  return res.data!;
+}
+
+/**
+ * 고객의 주문목록
+ *
+ * @param customerId 고객번호
+ * @returns
+ */
+export async function getCustomerOrderHistory(
+  customerId: number,
+): Promise<OrderItemRow[]> {
+  const qs = toQueryString({ customerId });
+
+  const res = await callApi<undefined, OrderItemRow[]>(
+    `/api/customer/actions/order-items?${qs}`,
+    "GET",
+  );
+
+  return res.data!;
+}
+
+/**
+ * 고객 정보 수정
+ *
+ * @param id 고객id
+ * @param data  수정될 data
+ * @returns
+ */
+export async function updateCustomer(
+  data: Partial<Customer>,
+): Promise<Customer> {
+  const res = await callApi<Partial<Customer>, Customer>(
+    `/api/customer`,
+    "PATCH",
+    data,
   );
 
   return res.data!;

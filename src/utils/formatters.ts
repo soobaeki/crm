@@ -39,3 +39,15 @@ export function formatNumber(
 export function formatDate(date?: Date | null) {
   return date ? date.toISOString().split("T")[0] : null;
 }
+
+// XXX-XXXX-XXXX -> XXXXXXXXXXX
+export function removeDash(value: number | string | undefined | null): string {
+  if (value === null || value === undefined) return "";
+
+  const str = typeof value === "string" ? value : String(value);
+
+  // 숫자만 남기기
+  const digits = str.replace(/\D/g, "");
+
+  return digits;
+}

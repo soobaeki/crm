@@ -1,6 +1,6 @@
 export async function callApi<TReq = unknown, TRes = unknown>(
   url: string,
-  method: "GET" | "POST" | "PUT" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   body?: TReq,
 ): Promise<ApiResponse<TRes>> {
   const options: RequestInit = {

@@ -93,6 +93,7 @@ export default function ViewTable<T extends object>({
   );
 
   return (
+    // prettier-ignore
     <div className="flex w-full flex-col overflow-hidden">
       <div className="min-w-0 flex-1 overflow-x-auto">
         {/* table-fixed가 있어야 너비 고정이 먹힙니다 */}
@@ -181,21 +182,14 @@ export default function ViewTable<T extends object>({
                           // 반대로 px 값이 있을 때는 그 너비만큼만 딱 고정해야 말줄임이 예쁘게 먹힙니다.
                           maxWidth:
                             meta?.width === "auto" ? "none" : meta?.width,
-                          overflow: "hidden", // 넘치는 내용 숨김
-                          textOverflow: "ellipsis", // [핵심] 말줄임표 활성화
-                          whiteSpace: "nowrap", // [핵심] 줄바꿈 방지
                         }}
-                        className={`table-body-cell overflow-hidden ${
-                          isCustomerName
-                            ? "bg-background border-border hover:bg-table-hover sticky left-0 z-10 border-r"
-                            : ""
-                        } ${
-                          meta.align === "center"
-                            ? "text-center"
-                            : meta.align === "right"
-                              ? "text-right"
-                              : "text-left"
-                        }`}
+                        className={`table-body-cell 
+                          /* 1. 정렬 처리 */ 
+                          ${meta.align === "right" ? "text-right" : meta.align === "center" ? "text-center" : "text-left"} 
+                          /* 2. Sticky (고객명) 처리 */ 
+                          ${isCustomerName ? "bg-background sticky left-0 z-10 border-r" : "bg-transparent"} 
+                          `
+                        }
                       >
                         <ViewTooltip content={String(cell.getValue() ?? "-")}>
                           {/* [핵심 2] w-full, truncate, block을 사용하여 말줄임 강제 적용 */}

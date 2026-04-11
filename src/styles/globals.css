@@ -17,7 +17,8 @@
 
   /* 4. 비활성 배경 및 텍스트 */
   --muted-bg: #f1f5f9; /* [용도] 비활성화된 입력창 배경, 부가 설명 글자의 배경색 */
-  --muted-foreground: #64748b; /* [용도] 비활성화된 입력창 텍스트용 색상 */
+  --muted-foreground: #0f172a; /* [용도] 비활성화된 입력창 텍스트용 색상 */
+  /* --muted-foreground: #64748b; /* [용도] 비활성화된 입력창 텍스트용 색상 */
 
   /* 5. 경계선 및 특수 요소 */
   --border: #e2e8f0; /* [용도] 테이블 행 구분선, 카드 테두리, 섹션 간의 얇은 구분선 */
@@ -84,15 +85,33 @@
   }
 
   .table-header-cell {
-    @apply hover:bg-table-hover text-table-header-text bg-table-header-bg cursor-pointer px-4 py-3 text-center text-[13px] font-semibold whitespace-nowrap transition-colors;
+    @apply text-table-header-text bg-table-header-bg cursor-pointer px-4 py-3 text-center text-[13px] font-semibold whitespace-nowrap;
   }
 
   .table-body-row {
-    @apply hover:bg-table-hover cursor-pointer transition-colors;
+    /* [행] 부모 역할: group 선언 */
+    @apply border-border cursor-pointer border-b;
+    /* 애니메이션 지연을 없애기 위해 transition 제거 */
+    transition: none !important;
   }
 
   .table-body-cell {
     @apply border-border text-foreground/80 px-4 py-3 whitespace-nowrap;
+    /* 직접 제어할 스타일 */
+    white-space: nowrap; /* [핵심] 줄바꿈 방지 */
+    overflow: hidden; /* 넘치는 내용 숨김 */
+    text-overflow: ellipsis; /* [핵심] 말줄임표 활성화 */
+    transition: none !important;
+
+    /* [수정] v4에서는 @apply group-hover 대신 직접 CSS 선택자를 쓰는 게 에러가 없습니다. */
+    .table-body-row:hover & {
+      @apply bg-table-hover;
+    }
+
+    /* 또는 더 확실한 방법: */
+    &:is(.table-body-row:hover *) {
+      background-color: var(--table-hover) !important;
+    }
   }
 
   .pagination-wrapper {
@@ -113,11 +132,24 @@
   }
 
   .form-label {
-    @apply text-foreground/60 text-xs font-bold tracking-wider uppercase;
+    @apply text-foreground/60 text-[11px] font-bold tracking-wider uppercase;
   }
 
   .form-input {
     @apply border-border bg-muted-bg/30 text-foreground focus:ring-primary/20 focus:border-primary rounded-xl border px-3 py-2 text-sm transition-all outline-none focus:ring-2;
+  }
+
+  /* 4. 읽기 전용/상세 보기 (Modal에서 사용) */
+  .form-display {
+    @apply text-foreground border-border flex items-center border-b-2 pb-1 text-sm font-medium transition-colors;
+
+    /* 3. 살짝의 배경색을 넣어 영역을 확실히 구분 (선택사항이나 추천) */
+    @apply bg-muted-bg/10 rounded-t-md px-2;
+  }
+
+  /* 5. 데이터 없음 영역 (주문 내역 등) */
+  .form-empty-state {
+    @apply border-border bg-muted-bg/5 flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-dashed py-12;
   }
 
   .btn-base {
@@ -129,7 +161,17 @@
   }
 
   .btn-outline {
-    @apply border-primary text-primary hover:bg-primary/5 border bg-transparent;
+    @apply border-primary text-primary hover:bg-primary/10 border bg-transparent;
+  }
+
+  /* 닫기/취소용 버튼 (질문자님이 원하신 찐한 호버 버전) */
+  .btn-muted {
+    @apply border-muted-foreground/30 text-muted-foreground border bg-transparent;
+  }
+
+  .btn-muted:hover {
+    /* 호버했을 때 테두리와 글자가 확실히 진해지도록 */
+    @apply border-foreground text-foreground bg-muted-bg/50!;
   }
 
   .btn-danger {

@@ -126,3 +126,62 @@ export async function getCustomerIssues() {
 
   return result;
 }
+
+// 고객의 주문 목록
+export async function getCustomerOrderHistory(customerId: number) {
+  const customerData = await prisma.customers.findUnique({
+    where: {
+      id: customerId,
+    },
+    include: {
+      orders: {
+        orderBy: {
+          created_at: "desc",
+        },
+        include: {
+          order_items: true,
+        },
+      },
+      customer_requests: {
+        orderBy: {
+          created_at: "desc",
+        },
+      },
+    },
+  });
+
+  if (!customerData) return [];
+
+  return customerData.orders.flatMap((order) =>
+    order.order_items.map((item) => ({
+      id: item.id,
+      orderId: order.id,
+      productId: item.product_id,
+      proudctNameSnapshot: item.product_name_snapshot,
+      unitPriceSnapshot: item.unit_price_snapshot,
+      quantity: item.quantity,
+      lineTotal: item.line_total,
+      discount: item.discount,
+      tax: item.tax,
+      createdAt: formatDate(item.created_at),
+      status: order.status,
+      orderDate: formatDate(order.order_date),
+    })),
+  );
+}
+
+// 고객 정보 수정
+export async function updateCustomer(data: Partial<Customer>) {
+  return await prisma.customers.update({
+    where: {
+      id: data.id,
+    },
+    data: {
+      nick_name: data.nickName,
+      home_phone: data.homePhone,
+      mobile_phone: data.mobilePhone,
+      address: data.address,
+      updated_at: new Date(),
+    },
+  });
+}
