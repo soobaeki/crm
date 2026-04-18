@@ -34,18 +34,14 @@ export async function getCustomers(
 
 // POST 메서드: 고객 등록
 export async function postCustomer(data: CustomerFormInput) {
-  const { customerName, homePhone, mobilePhone, address } = data;
+  const { customerName, nickName, homePhone, mobilePhone, address } = data;
+
   return await prisma.customers.create({
     data: {
       customer_name: encryptGCM(customerName),
-      nick_name: customerName,
-      home_phone: homePhone,
-      // home_phone: encrypt(homePhone, process.env.ENCRYPT_SECRET_KEY ?? ""),
-      mobile_phone: mobilePhone,
-      // mobile_phone: encrypt(
-      //   mobilePhone,
-      //   process.env.ENCRYPT_SECRET_KEY ?? "",
-      // ),
+      nick_name: nickName,
+      home_phone: homePhone ? encryptGCM(homePhone) : "",
+      mobile_phone: mobilePhone ? encryptGCM(mobilePhone) : "",
       address,
     },
   });

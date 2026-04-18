@@ -10,12 +10,8 @@ import { callApi } from "../core";
  * @param searchText 조회 조건
  * @returns
  */
-export async function getProducts(
-  startDate?: string,
-  endDate?: string,
-  searchText?: string,
-): Promise<Product[]> {
-  const qs = toQueryString({ startDate, endDate, searchText });
+export async function getProducts(searchText?: string): Promise<Product[]> {
+  const qs = toQueryString({ searchText });
 
   const res = await callApi<undefined, Product[]>(`/api/product?${qs}`, "GET");
 
@@ -61,11 +57,11 @@ export async function putProduct(input: ProductFormInput): Promise<Product> {
  * @returns
  */
 export async function deleteProduct(
-  productId: number,
-): Promise<{ productId: number }> {
-  if (isNaN(productId)) throw new Error("유효하지 않은 상품 ID 입니다.");
+  productId: string,
+): Promise<{ productId: string }> {
+  if (!productId) throw new Error("유효하지 않은 상품 ID 입니다.");
 
-  const res = await callApi<{ productId: number }, { productId: number }>(
+  const res = await callApi<{ productId: string }, { productId: string }>(
     "/api/product",
     "DELETE",
     { productId },

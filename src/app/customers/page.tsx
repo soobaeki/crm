@@ -49,6 +49,7 @@ export default function Page() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // 고객 리스트 조회 (enabled: false로 초기 로딩 제어 가능)
   const {
@@ -93,8 +94,8 @@ export default function Page() {
     setSelectedCustomer(customer);
   }, []);
 
-  const handleCloseModal = useCallback(() => {
-    setSelectedCustomer(null);
+  const handleOpenRegister = useCallback(() => {
+    setIsCreateModalOpen(true);
   }, []);
 
   /* -------------------------------------------------------------------------- */
@@ -115,7 +116,7 @@ export default function Page() {
             filters={filters}
             onChange={handleUpdateFilters}
             onSearch={handleSearch}
-            onRegister={() => alert("등록 기능 개발 예정")}
+            onRegister={handleOpenRegister}
             registerLabel="고객 추가"
           />
 
@@ -131,12 +132,23 @@ export default function Page() {
         </ViewCol>
       </ViewBody>
 
-      {/* 모달 영역 */}
+      {/* 모달 영역 수정 */}
       {selectedCustomer && (
         <CustomerModal
+          mode="update"
           customer={selectedCustomer}
           isOpen={!!selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
+          onRefresh={refetch}
+        />
+      )}
+
+      {/* 모달 영역 등록 */}
+      {isCreateModalOpen && (
+        <CustomerModal
+          mode="create"
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
           onRefresh={refetch}
         />
       )}

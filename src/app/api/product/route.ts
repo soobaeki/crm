@@ -16,11 +16,9 @@ import {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get("startDate") || undefined;
-    const endDate = searchParams.get("endDate") || undefined;
     const searchText = searchParams.get("searchText") || undefined;
 
-    const products = await selectProducts(startDate, endDate, searchText);
+    const products = await selectProducts(searchText);
 
     const response: ApiResponse<typeof products> = {
       success: true,

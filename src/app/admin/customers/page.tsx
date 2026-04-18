@@ -149,8 +149,6 @@ export default function page() {
             filters={filters}
             onChange={handleSearchFilter}
             onSearch={handleSearch}
-            onRegister={() => setIsModalOpen(true)}
-            registerLabel="고객 추가"
           />
 
           {/* 업로드 / 다운로드 */}

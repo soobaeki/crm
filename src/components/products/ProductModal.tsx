@@ -1,172 +1,210 @@
 "use client";
 
-//////////////////////
-// import
-//////////////////////
 import { useState } from "react";
-import { Product } from "@/types/product";
-import Modal from "@/components/commons/ViewModal";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Product, ProductFormInput } from "@/types/product";
+import ViewModal from "@/components/commons/ViewModal";
+import {
+  deleteProduct,
+  postProduct,
+  putProduct,
+} from "@/lib/product/product.api";
 
-//////////////////////
-// types / interfaces
-//////////////////////
 interface IProps {
+  mode: "create" | "update";
   product?: Product;
+  isOpen: boolean;
   onClose: () => void;
-  onDelete: (id: number) => void;
-  onConfirm: (data: Product, isNew: boolean) => void;
+  onRefresh: () => void;
 }
 
-//////////////////////
-// component start
-//////////////////////
-export default function ProductModal({
-  product,
-  onClose,
-  onDelete,
-  onConfirm,
-}: IProps) {
-  const isNew = !product?.id;
+const emptyProduct: Partial<Product> = {
+  name: "",
+  weight: 0,
+  price: 0,
+  currency: "",
+  stockQuantity: 0,
+  isActive: false,
+};
 
-  //////////////////////
-  // data
-  //////////////////////
-  const [form, setForm] = useState<Product>({
-    id: product?.id || 0,
-    sku: product?.sku || "",
-    name: product?.name || "",
-    weight: product?.weight || 0,
-    price: product?.price || 0,
-    currency: product?.currency || "KRW",
-    stockQuantity: product?.stockQuantity || 0,
-    isActive: product?.isActive ?? true,
-    createdAt: product?.createdAt,
-    updatedAt: product?.updatedAt,
+export default function ProductModal({
+  mode,
+  product,
+  isOpen,
+  onClose,
+  onRefresh,
+}: IProps) {
+  const [formData, setFormData] = useState<Partial<Product>>(
+    mode === "create" ? emptyProduct : { ...product },
+  );
+
+  const queryClient = useQueryClient();
+
+  // 상품 등록
+  const { mutate: handleCreate } = useMutation({
+    mutationFn: (data: Partial<ProductFormInput>) =>
+      postProduct(data as ProductFormInput),
+    onSuccess: () => {
+      alert("등록되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      onClose();
+      onRefresh();
+    },
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, type, value, checked } = e.target as HTMLInputElement;
-    setForm((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : type === "number"
-            ? Number(value)
-            : value,
-    }));
-  };
+  // 상품 수정
+  const { mutate: handleUpdate } = useMutation<
+    Product,
+    Error,
+    Partial<Product>
+  >({
+    mutationFn: () => putProduct(formData),
+    onSuccess: (data) => {
+      alert("수정되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      onClose();
+      onRefresh();
+    },
+  });
 
-  const handleConfirm = () => {
-    if (!form.name.trim()) {
-      alert("상품명을 입력해주세요.");
-      return;
+  // 상품 삭제
+  const { mutate: handleDelete } = useMutation({
+    mutationFn: () => deleteProduct(formData.sku as string),
+    onSuccess: () => {
+      alert("삭제되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      onClose();
+      onRefresh();
+    },
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let finalValue = value;
+
+    if (name === "weight" || name === "price" || name === "stockQuantity") {
+      finalValue = value.replace(/[^0-9]/g, "");
     }
 
-    if (form.price <= 0) {
-      alert("가격은 0보다 커야 합니다.");
-      return;
-    }
-
-    onConfirm(form, isNew);
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
+
+  // 실제 확인 버튼 클릭 시 실행할 함수
+  const onConfirmAction = () => {
+    if (mode === "update") {
+      handleUpdate(formData);
+    } else {
+      handleCreate(formData as ProductFormInput);
+    }
+  };
+
+  const fields = [
+    { label: "순번", name: "id", value: formData.id },
+    {
+      label: "상품번호",
+      name: "sku",
+      value: formData.sku,
+    },
+    {
+      label: "상품명",
+      name: "name",
+      value: formData.name,
+      readOnly: mode === "update",
+    },
+    { label: "무게", name: "weight", value: formData.weight },
+    {
+      label: "가격",
+      name: "price",
+      value: formData.price || 0,
+      fullWidth: true,
+    },
+    {
+      label: "통화",
+      name: "currency",
+      value: formData.currency || 0,
+      fullWidth: true,
+    },
+    {
+      label: "수량",
+      name: "stockQuantity",
+      value: formData.stockQuantity || 0,
+      fullWidth: true,
+    },
+    {
+      label: "활성화여부",
+      name: "isActive",
+      type: "checkbox",
+      value: formData.isActive || false,
+      fullWidth: true,
+    },
+    ...(mode === "update"
+      ? [
+          {
+            label: "가입일",
+            name: "createdAt",
+            value: formData.createdAt
+              ? new Date(formData.createdAt).toLocaleDateString()
+              : "-",
+            readOnly: true,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <Modal
-      type="product"
-      isOpen={true}
-      title={isNew ? "상품 등록" : "상품 수정"}
+    <ViewModal
+      isOpen={isOpen}
       onClose={onClose}
-      onDelete={() => onDelete(form.id)}
-      onConfirm={handleConfirm}
-      deleteLabel="삭제"
-      confirmLabel={isNew ? "등록" : "수정"}
+      onDelete={mode === "create" ? undefined : handleDelete}
+      onConfirm={onConfirmAction}
+      title={
+        mode === "create" ? "신규 상품 등록" : `${formData.name} 정보 수정`
+      }
+      size={mode === "create" ? "md" : "xl"}
+      confirmLabel={mode === "create" ? "등록" : "수정"}
+      deleteLabel={mode === "create" ? undefined : "삭제"}
     >
-      {/* flex-col gap-4로 전체 간격 확대, p-4로 모달 내부 패딩 추가 */}
-      <div className="flex flex-col gap-4 p-4">
-        {/* 상품명 필드 그룹 */}
-        <div className="flex flex-col">
-          <label
-            htmlFor="name"
-            className="mb-1 text-sm font-medium text-gray-700"
-          >
-            상품명
-          </label>
-          <input
-            id="name" // label의 htmlFor와 연결하기 위해 id 추가
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            type="text"
-            // 기본 폼 스타일: border, rounded, padding, focus 시 스타일
-            className="rounded-md border border-gray-300 p-2 transition duration-150 ease-in-out focus:border-blue-500 focus:ring-blue-500"
-            placeholder="상품명을 입력하세요"
-          />
-        </div>
-
-        {/* 가격 필드 그룹 */}
-        <div className="flex flex-col">
-          <label
-            htmlFor="price"
-            className="mb-1 text-sm font-medium text-gray-700"
-          >
-            가격
-          </label>
-          <input
-            id="price"
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            type="number"
-            className="rounded-md border border-gray-300 p-2 transition duration-150 ease-in-out focus:border-blue-500 focus:placeholder-transparent focus:ring-blue-500"
-            // placeholder="0"
-            // min="0"
-          />
-        </div>
-
-        {/* 재고 수량 필드 그룹 */}
-        <div className="flex flex-col">
-          <label
-            htmlFor="stockQuantity"
-            className="mb-1 text-sm font-medium text-gray-700"
-          >
-            재고 수량
-          </label>
-          <input
-            id="stockQuantity"
-            name="stockQuantity"
-            value={form.stockQuantity}
-            onChange={handleChange}
-            type="number"
-            className="rounded-md border border-gray-300 p-2 transition duration-150 ease-in-out focus:border-blue-500 focus:ring-blue-500"
-            // placeholder="0"
-            // min="0"
-          />
-        </div>
-
-        {/* 판매 중 여부 체크박스 그룹 */}
-        <div className="flex items-center pt-2">
-          <label
-            htmlFor="isActive"
-            className="flex cursor-pointer items-center"
-          >
-            <input
-              id="isActive"
-              name="isActive"
-              type="checkbox"
-              checked={form.isActive}
-              onChange={handleChange}
-              // 기본 appearance를 숨기고 custom 스타일링을 위해 w-4 h-4 rounded-sm border-gray-300 적용
-              className="form-checkbox mr-2 h-4 w-4 rounded border-gray-300 text-blue-600"
-            />
-            <span className="text-base text-gray-700 select-none">
-              판매 중 여부
-            </span>
-          </label>
-        </div>
+      <div className="flex h-full flex-col gap-8">
+        {/* 기본 정보 섹션 */}
+        <section>
+          <h4 className="text-primary/80 mb-5 text-sm font-bold tracking-wider uppercase">
+            기본 정보
+          </h4>
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
+            {fields.map((field) => (
+              <div
+                key={field.label}
+                className={`form-field ${field.fullWidth ? "col-span-2" : ""}`}
+              >
+                <dt className="form-label">{field.label}</dt>
+                {field.readOnly ? (
+                  <dd className="form-display">{field.value}</dd>
+                ) : field.type === "checkbox" ? (
+                  <input
+                    type="checkbox"
+                    name={field.name}
+                    checked={!!formData[field.name as keyof Product]}
+                    onChange={handleChange}
+                    className="form-input w-full"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    name={field.name}
+                    value={
+                      (formData[field.name as keyof Product] as
+                        | string
+                        | number) ?? ""
+                    }
+                    onChange={handleChange}
+                    className="form-input w-full"
+                  />
+                )}
+              </div>
+            ))}
+          </dl>
+        </section>
       </div>
-    </Modal>
+    </ViewModal>
   );
 }

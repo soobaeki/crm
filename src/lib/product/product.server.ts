@@ -9,49 +9,64 @@ export const Currency = {
 };
 
 // GET 메서드: 상품 목록 조회
-export async function selectProducts(
-  startDate?: string,
-  endDate?: string,
-  searchText?: string,
-): Promise<Product[]> {
+export async function selectProducts(searchText?: string): Promise<Product[]> {
+  const onlyNumberText = searchText?.replace(/[^0-9]/g, "");
+  const isNumber = onlyNumberText && onlyNumberText.length > 0;
+  const numValue = isNumber ? Number(onlyNumberText) : null;
+  const lowerSearch = searchText?.toLowerCase();
+
+  // 날짜 형식(YYYY-MM-DD)인지 체크
+  const isHyphenDate = searchText
+    ? /^\d{4}-\d{2}-\d{2}$/.test(searchText)
+    : false;
+  const isFullNumberDate = onlyNumberText?.length === 8; // YYYYMMDD 형태 체크
+
+  // 2. 8자리 숫자(YYYYMMDD)를 날짜 범위로 변환
+  let dateFilter = null;
+  if (isFullNumberDate && onlyNumberText) {
+    const year = parseInt(onlyNumberText.substring(0, 4));
+    const month = parseInt(onlyNumberText.substring(4, 6)) - 1;
+    const day = parseInt(onlyNumberText.substring(6, 8));
+    const date = new Date(year, month, day);
+
+    if (!isNaN(date.getTime())) {
+      dateFilter = {
+        gte: new Date(year, month, day, 0, 0, 0, 0),
+        lte: new Date(year, month, day, 23, 59, 59, 999),
+      };
+    }
+  }
+
   const where: Prisma.productsWhereInput = {
-    AND: [
-      // 1️⃣ 날짜 조건
-      {
-        created_at: {
-          ...(startDate ? { gte: new Date(startDate) } : {}),
-          ...(endDate ? { lte: new Date(endDate) } : {}),
-        },
-      },
-      // 2️⃣ searchText 조건
-      ...(searchText
-        ? [
-            {
-              OR: [
-                !isNaN(Number(searchText))
-                  ? { id: { equals: Number(searchText) } }
-                  : undefined,
-                { name: { contains: searchText, mode: "insensitive" } },
-                !isNaN(Number(searchText))
-                  ? { weight: { equals: Number(searchText) } }
-                  : undefined,
-                !isNaN(Number(searchText))
-                  ? { price: { equals: Number(searchText) } }
-                  : undefined,
-                { currency: { contains: searchText, mode: "insensitive" } },
-                !isNaN(Number(searchText))
-                  ? { stock_quantity: { equals: Number(searchText) } }
-                  : undefined,
-                searchText.toLowerCase() === "true"
-                  ? { is_active: { equals: true } }
-                  : searchText.toLowerCase() === "false"
-                    ? { is_active: { equals: false } }
-                    : undefined,
-              ].filter(Boolean) as Prisma.productsWhereInput[],
-            },
-          ]
-        : []),
-    ],
+    ...(searchText && {
+      OR: [
+        // 텍스트 기반 검색 (대소문자 무시) String 필드: mode: "insensitive" 사용 가능
+        { name: { contains: searchText } },
+        { sku: { contains: searchText } }, // SKU 추가 추천
+        { currency: { contains: searchText } },
+
+        // 숫자 기반 검색 (값이 숫자일 때만 추가) 숫자 필드: mode를 빼고 값만
+        ...(isNumber && numValue !== null
+          ? [
+              { id: numValue },
+              { price: numValue },
+              { weight: numValue },
+              { stock_quantity: numValue },
+              { sku: { contains: onlyNumberText } },
+            ]
+          : []),
+
+        // 활성화 상태 검색 Boolean 필드: 역시 mode 사용 불가
+        ...(lowerSearch === "true" || lowerSearch === "false"
+          ? [{ is_active: lowerSearch === "true" }]
+          : []),
+
+        // 4. 날짜 검색 (YYYYMMDD 형태)
+        ...(dateFilter
+          ? [{ created_at: dateFilter, updated_at: dateFilter }]
+          : []),
+      ].filter(Boolean) as Prisma.productsWhereInput[],
+    }),
   };
 
   const products: products[] = await prisma.products.findMany({ where });
@@ -106,8 +121,8 @@ export async function updateProduct(data: ProductFormInput) {
 }
 
 // DELETE 메서드: 상품 삭제
-export async function deleteProduct(id: number) {
+export async function deleteProduct(sku: string) {
   await prisma.$transaction(async (tx) => {
-    await tx.products.delete({ where: { id } });
+    await tx.products.delete({ where: { sku } });
   });
 }

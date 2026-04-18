@@ -19,8 +19,8 @@ const navigation = [
     href: "/admin",
     icon: ShieldExclamationIcon,
     children: [
-      { label: "고객 데이터", href: "/admin/customers" },
-      { label: "주문 데이터", href: "/admin/orders" },
+      { label: "데이터 관리", href: "/admin/customers" },
+      // { label: "주문 데이터", href: "/admin/orders" },
     ],
   },
 ];

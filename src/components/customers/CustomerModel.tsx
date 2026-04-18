@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Customer } from "@/types/customer";
+import { Customer, CustomerFormInput } from "@/types/customer";
 import { OrderItemRow } from "@/types/order";
 import { Column } from "@/types/table";
 import {
+  createCustomer,
   getCustomerOrderHistory,
   updateCustomer,
 } from "@/lib/customer/customer.api";
@@ -14,11 +15,20 @@ import ViewModal from "../commons/ViewModal";
 import ViewTable from "../commons/ViewTable";
 
 interface IProps {
-  customer: Customer;
+  mode: "create" | "update";
+  customer?: Customer;
   isOpen: boolean;
   onClose: () => void;
   onRefresh: () => void;
 }
+
+const emptyCustomer: Partial<Customer> = {
+  customerName: "", // 고객 이름
+  nickName: "", // 닉네임 (옵셔널)
+  homePhone: "", // 집 전화번호 (옵셔널)
+  mobilePhone: "", // 휴대폰 번호 (유니크)
+  address: "", // 주소
+};
 
 const orderColumns = [
   { key: "id", label: "순번", width: "70px" },
@@ -54,12 +64,15 @@ const orderColumns = [
 ] satisfies Column<OrderItemRow>[];
 
 export default function CustomerModal({
+  mode,
   customer,
   isOpen,
   onClose,
   onRefresh,
 }: IProps) {
-  const [formData, setFormData] = useState(customer);
+  const [formData, setFormData] = useState<Partial<Customer>>(
+    mode === "create" ? emptyCustomer : { ...customer },
+  );
 
   const queryClient = useQueryClient();
 
@@ -71,8 +84,24 @@ export default function CustomerModal({
     isLoading,
   } = useQuery<OrderItemRow[]>({
     queryKey: ["orderItems", formData.id],
-    queryFn: () => getCustomerOrderHistory(formData.id),
+    queryFn: () => {
+      if (!formData.id) return [];
+
+      return getCustomerOrderHistory(formData.id);
+    },
     enabled: !!formData.id, // ID가 있을 때만 실행
+  });
+
+  // 고객 정보 등록
+  const { mutate: handleCreate } = useMutation({
+    mutationFn: (data: Partial<CustomerFormInput> & { customerName: string }) =>
+      createCustomer(data as CustomerFormInput),
+    onSuccess: () => {
+      alert("등록되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      onClose();
+      onRefresh();
+    },
   });
 
   // 고객 정보 수정
@@ -83,7 +112,6 @@ export default function CustomerModal({
   >({
     mutationFn: () => updateCustomer(formData),
     onSuccess: (data) => {
-      console.log("수정된 데이터", data);
       // 1. 성공 알림
       alert("수정되었습니다.");
       // 2. 부모 리스트 쿼리 무효화 (자동 리프레시)
@@ -114,12 +142,21 @@ export default function CustomerModal({
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
 
+  // 실제 확인 버튼 클릭 시 실행할 함수
+  const onConfirmAction = () => {
+    if (mode === "update") {
+      handleUpdate(formData);
+    } else {
+      handleCreate(formData as CustomerFormInput);
+    }
+  };
+
   const fields = [
     {
       label: "고객명",
       name: "customerName",
       value: formData.customerName,
-      readOnly: true,
+      readOnly: mode === "update",
     },
     { label: "닉네임", name: "nickName", value: formData.nickName },
     {
@@ -128,18 +165,22 @@ export default function CustomerModal({
       value: formData.homePhone,
     },
     { label: "휴대전화", name: "mobilePhone", value: formData.mobilePhone },
-    {
-      label: "가입일",
-      name: "createdAt",
-      value: formData.createdAt
-        ? new Date(formData.createdAt).toLocaleDateString()
-        : "-",
-      readOnly: true,
-    },
+    ...(mode === "update"
+      ? [
+          {
+            label: "가입일",
+            name: "createdAt",
+            value: formData.createdAt
+              ? new Date(formData.createdAt).toLocaleDateString()
+              : "-",
+            readOnly: true,
+          },
+        ]
+      : []),
     {
       label: "주소",
       name: "address",
-      value: formData.address || "-",
+      value: formData.address || "",
       fullWidth: true,
     },
   ];
@@ -148,10 +189,14 @@ export default function CustomerModal({
     <ViewModal
       isOpen={isOpen}
       onClose={onClose}
-      onConfirm={() => handleUpdate(formData)}
-      title={formData.customerName ? `${formData.customerName} 님 정보` : ""}
-      size="xl"
-      confirmLabel="수정"
+      onConfirm={onConfirmAction}
+      title={
+        mode === "create"
+          ? "신규 고객 등록"
+          : `${formData.customerName} 님 정보`
+      }
+      size={mode === "create" ? "md" : "xl"}
+      confirmLabel={mode === "create" ? "등록" : "수정"}
     >
       <div className="flex h-full flex-col gap-8">
         {/* 기본 정보 섹션 */}
@@ -183,30 +228,32 @@ export default function CustomerModal({
         </section>
 
         {/* 하단 내역 섹션 */}
-        <section className="flex flex-1 flex-col">
-          <h4 className="text-primary/80 mb-4 text-sm font-bold tracking-wider uppercase">
-            최근 주문 내역
-          </h4>
-          {isFetching ? (
-            // 1. 로딩 상태: 사용자가 기다리고 있음을 알려줌
-            <div className="flex h-60 items-center justify-center">
-              <span className="text-muted-foreground animate-pulse text-sm">
-                주문 내역 조회 중...
-              </span>
-            </div>
-          ) : orderItems.length > 0 ? (
-            // 데이터가 있을 때
-            <ViewTable columns={orderColumns} data={orderItems} />
-          ) : (
-            //  데이터가 없을 때
-            <div className="form-empty-state">
-              <div className="mb-3 text-3xl opacity-20">📦</div>
-              <p className="text-muted-foreground text-sm font-medium">
-                최근 주문 내역이 존재하지 않습니다.
-              </p>
-            </div>
-          )}
-        </section>
+        {mode === "update" && (
+          <section className="flex flex-1 flex-col">
+            <h4 className="text-primary/80 mb-4 text-sm font-bold tracking-wider uppercase">
+              최근 주문 내역
+            </h4>
+            {isFetching ? (
+              // 1. 로딩 상태: 사용자가 기다리고 있음을 알려줌
+              <div className="flex h-60 items-center justify-center">
+                <span className="text-muted-foreground animate-pulse text-sm">
+                  주문 내역 조회 중...
+                </span>
+              </div>
+            ) : orderItems.length > 0 ? (
+              // 데이터가 있을 때
+              <ViewTable columns={orderColumns} data={orderItems} />
+            ) : (
+              //  데이터가 없을 때
+              <div className="form-empty-state">
+                <div className="mb-3 text-3xl opacity-20">📦</div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  최근 주문 내역이 존재하지 않습니다.
+                </p>
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </ViewModal>
   );

@@ -9,7 +9,7 @@ export interface Customer {
   createdAt: string; // 생성일시 (ISO 문자열)
 }
 
-export type CustomerFormInput = Omit<Customer, "id" | "createdAt">;
+export type CustomerFormInput = Omit<Customer, "index" | "id" | "createdAt">;
 
 // 고객 요청사항
 export interface CustomerRequest {

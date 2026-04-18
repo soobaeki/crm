@@ -3,7 +3,7 @@
 //////////////////////
 // import
 //////////////////////
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@/types/product";
 import { Column } from "@/types/table";
@@ -14,12 +14,7 @@ import ViewContainer from "@/components/commons/ViewContainer";
 import ViewSearchFilter from "@/components/commons/ViewSearchFilter";
 import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
-import {
-  deleteProduct,
-  getProducts,
-  postProduct,
-  putProduct,
-} from "@/lib/product/product.api";
+import { getProducts } from "@/lib/product/product.api";
 import { formatNumber } from "@/utils/formatters";
 import ProductModal from "../../components/products/ProductModal";
 
@@ -32,11 +27,11 @@ const productColumns = [
   {
     key: "sku",
     label: "SKU",
+    width: "190px",
   },
   {
     key: "name",
     label: "상품명",
-    width: "100px",
   },
   {
     key: "weight",
@@ -85,36 +80,59 @@ const productColumns = [
   },
 ] satisfies Column<Product>[];
 
-//////////////////////
-// component start
-//////////////////////
 export default function ProductPage() {
-  //////////////////////
-  // state & router & query
-  //////////////////////
+  /* -------------------------------------------------------------------------- */
+  /* 1. State & Queries                                                         */
+  /* ------------------------------------------------------------------------- */
   const [filters, setFilters] = useState({
-    startDate: "",
-    // startDate: dayjs().format("YYYY-MM-DD"),
-    endDate: "",
     searchText: "",
   });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // 상품 리스트 조회
   const { data: products = [], refetch } = useQuery<Product[]>({
-    queryKey: [
-      "products",
-      filters.startDate,
-      filters.endDate,
-      filters.searchText,
-    ],
-    queryFn: () =>
-      getProducts(filters.startDate, filters.endDate, filters.searchText),
+    queryKey: ["products", filters.searchText],
+    queryFn: () => getProducts(filters.searchText),
+    enabled: false,
   });
 
-  //////////////////////
-  // handlers (useCallback)
-  //////////////////////
+  /* -------------------------------------------------------------------------- */
+  /* 2. Memoized Data (Search)                                                  */
+  /* -------------------------------------------------------------------------- */
+  const filteredProducts = useMemo(() => {
+    const term = filters.searchText?.replace(/\s/g, "").toLowerCase();
+    if (!term) return products;
+
+    return products.filter((p) => {
+      const fieldsToSearch = [
+        p.id,
+        p.name,
+        p.sku,
+        p.price,
+        p.weight,
+        p.currency,
+        p.stockQuantity,
+        p.createdAt,
+        p.updatedAt,
+      ];
+
+      return fieldsToSearch.some((field) => {
+        if (field === null || field === undefined) return false;
+
+        const stringValue = field
+          .toLocaleString()
+          .replace(/\s/g, "")
+          .toLowerCase();
+
+        return stringValue.includes(term);
+      });
+    });
+  }, [products, filters.searchText]);
+
+  /* -------------------------------------------------------------------------- */
+  /* 3. Event Handlers (Business Logic)                                         */
+  /* -------------------------------------------------------------------------- */
   const handleSearchFilter = useCallback(
     (newFilters: Partial<typeof filters>) => {
       setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -122,44 +140,21 @@ export default function ProductPage() {
     [filters],
   );
 
-  // 조회 버튼 클릭 시 실행될 함수
   const handleSearch = useCallback(async () => {
     await refetch();
   }, [refetch]);
 
-  const handleOpenModal = useCallback((product?: Product) => {
-    setSelectedProduct(product ?? null);
-    setIsModalOpen(true);
+  const handleOpenDetail = useCallback((product: Product) => {
+    setSelectedProduct(product);
   }, []);
 
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
+  const handleOpenRegister = useCallback(() => {
+    setIsCreateModalOpen(true);
   }, []);
 
-  const handleDeleteProduct = useCallback(
-    async (id: number) => {
-      if (confirm("정말 삭제하시겠습니까?")) {
-        await deleteProduct(id);
-        handleCloseModal();
-        await refetch();
-      }
-    },
-    [handleCloseModal, refetch],
-  );
-
-  const handleConfirmProduct = useCallback(
-    async (data: Product, isNew: boolean) => {
-      isNew ? await postProduct(data) : await putProduct(data);
-      handleCloseModal();
-      await refetch();
-    },
-    [handleCloseModal, refetch],
-  );
-
-  //////////////////////
-  // render (JSX)
-  //////////////////////
+  /* -------------------------------------------------------------------------- */
+  /* 5. Render                                                                  */
+  /* -------------------------------------------------------------------------- */
   return (
     <ViewContainer>
       {/* 제목 */}
@@ -173,22 +168,40 @@ export default function ProductPage() {
             filters={filters}
             onChange={handleSearchFilter}
             onSearch={handleSearch}
-            onRegister={handleOpenModal}
+            onRegister={handleOpenRegister}
             registerLabel="상품 추가"
           />
-          <ViewCard>
-            <ViewTable columns={productColumns} data={products} />
+
+          {/* 테이블 카드 영역 */}
+          <ViewCard className="hover:border-border! transition-none! hover:translate-y-0! hover:shadow-none! active:scale-100!">
+            <ViewTable
+              columns={productColumns}
+              data={filteredProducts}
+              initialPageSize={10}
+              onRowClick={handleOpenDetail}
+            />
           </ViewCard>
         </ViewCol>
       </ViewBody>
 
-      {/* ✅ 모달은 상태 기반으로 제어 */}
-      {isModalOpen && (
+      {/* 모달 영역 수정 */}
+      {selectedProduct && (
         <ProductModal
-          product={selectedProduct ?? undefined} // 존재하면 수정, 없으면 신규
-          onClose={handleCloseModal}
-          onDelete={handleDeleteProduct}
-          onConfirm={handleConfirmProduct}
+          mode="update"
+          product={selectedProduct}
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onRefresh={refetch}
+        />
+      )}
+
+      {/* 모달 영역 등록 */}
+      {isCreateModalOpen && (
+        <ProductModal
+          mode="create"
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onRefresh={refetch}
         />
       )}
     </ViewContainer>
