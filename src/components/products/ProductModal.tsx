@@ -22,7 +22,7 @@ const emptyProduct: Partial<Product> = {
   name: "",
   weight: 0,
   price: 0,
-  currency: "",
+  currency: "KRW",
   stockQuantity: 0,
   isActive: false,
 };
@@ -69,7 +69,7 @@ export default function ProductModal({
 
   // 상품 삭제
   const { mutate: handleDelete } = useMutation({
-    mutationFn: () => deleteProduct(formData.sku as string),
+    mutationFn: (sku: string) => deleteProduct(sku),
     onSuccess: () => {
       alert("삭제되었습니다.");
       queryClient.invalidateQueries({ queryKey: ["product"] });
@@ -79,11 +79,18 @@ export default function ProductModal({
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    let finalValue = value;
+    const { name, value, type, checked } = e.target;
+    let finalValue: any = value;
 
-    if (name === "weight" || name === "price" || name === "stockQuantity") {
+    if (type === "checkbox") {
+      finalValue = checked;
+    } else if (
+      name === "weight" ||
+      name === "price" ||
+      name === "stockQuantity"
+    ) {
       finalValue = value.replace(/[^0-9]/g, "");
+      finalValue = finalValue === "" ? 0 : Number(finalValue);
     }
 
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
@@ -99,17 +106,24 @@ export default function ProductModal({
   };
 
   const fields = [
-    { label: "순번", name: "id", value: formData.id },
+    {
+      label: "순번",
+      name: "id",
+      value: formData.id,
+      readOnly: mode === "update",
+      hide: mode === "create" ? true : false,
+    },
     {
       label: "상품번호",
       name: "sku",
       value: formData.sku,
+      readOnly: mode === "update",
+      hide: mode === "create" ? true : false,
     },
     {
       label: "상품명",
       name: "name",
       value: formData.name,
-      readOnly: mode === "update",
     },
     { label: "무게", name: "weight", value: formData.weight },
     {
@@ -121,7 +135,7 @@ export default function ProductModal({
     {
       label: "통화",
       name: "currency",
-      value: formData.currency || 0,
+      value: formData.currency || "KRW",
       fullWidth: true,
     },
     {
@@ -135,12 +149,11 @@ export default function ProductModal({
       name: "isActive",
       type: "checkbox",
       value: formData.isActive || false,
-      fullWidth: true,
     },
     ...(mode === "update"
       ? [
           {
-            label: "가입일",
+            label: "등록일",
             name: "createdAt",
             value: formData.createdAt
               ? new Date(formData.createdAt).toLocaleDateString()
@@ -155,12 +168,16 @@ export default function ProductModal({
     <ViewModal
       isOpen={isOpen}
       onClose={onClose}
-      onDelete={mode === "create" ? undefined : handleDelete}
+      onDelete={
+        mode === "create"
+          ? undefined
+          : () => handleDelete(formData.sku as string)
+      }
       onConfirm={onConfirmAction}
       title={
         mode === "create" ? "신규 상품 등록" : `${formData.name} 정보 수정`
       }
-      size={mode === "create" ? "md" : "xl"}
+      size="md"
       confirmLabel={mode === "create" ? "등록" : "수정"}
       deleteLabel={mode === "create" ? undefined : "삭제"}
     >
@@ -171,37 +188,39 @@ export default function ProductModal({
             기본 정보
           </h4>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
-            {fields.map((field) => (
-              <div
-                key={field.label}
-                className={`form-field ${field.fullWidth ? "col-span-2" : ""}`}
-              >
-                <dt className="form-label">{field.label}</dt>
-                {field.readOnly ? (
-                  <dd className="form-display">{field.value}</dd>
-                ) : field.type === "checkbox" ? (
-                  <input
-                    type="checkbox"
-                    name={field.name}
-                    checked={!!formData[field.name as keyof Product]}
-                    onChange={handleChange}
-                    className="form-input w-full"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    name={field.name}
-                    value={
-                      (formData[field.name as keyof Product] as
-                        | string
-                        | number) ?? ""
-                    }
-                    onChange={handleChange}
-                    className="form-input w-full"
-                  />
-                )}
-              </div>
-            ))}
+            {fields
+              .filter((f) => !f.hide)
+              .map((field) => (
+                <div
+                  key={field.label}
+                  className={`form-field ${field.fullWidth ? "col-span-2" : ""}`}
+                >
+                  <dt className="form-label">{field.label}</dt>
+                  {field.readOnly ? (
+                    <dd className="form-display">{field.value}</dd>
+                  ) : field.type === "checkbox" ? (
+                    <input
+                      type="checkbox"
+                      name={field.name}
+                      checked={!!formData[field.name as keyof Product]}
+                      onChange={handleChange}
+                      className="h-4 w-4 cursor-pointer"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      name={field.name}
+                      value={
+                        (formData[field.name as keyof Product] as
+                          | string
+                          | number) ?? ""
+                      }
+                      onChange={handleChange}
+                      className="form-input w-full"
+                    />
+                  )}
+                </div>
+              ))}
           </dl>
         </section>
       </div>

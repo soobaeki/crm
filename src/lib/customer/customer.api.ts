@@ -20,8 +20,9 @@ import { toQueryString } from "@/utils/url";
 export async function getCustomers(
   startDate?: string,
   endDate?: string,
+  searchText?: string,
 ): Promise<Customer[]> {
-  const qs = toQueryString({ startDate, endDate });
+  const qs = toQueryString({ startDate, endDate, searchText });
 
   // callApi가 ApiResponse<Customer[]> 반환함
   const res = await callApi<undefined, Customer[]>(

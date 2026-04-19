@@ -3,7 +3,7 @@
 //////////////////////
 // import
 //////////////////////
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@/types/product";
 import { Column } from "@/types/table";
@@ -27,7 +27,8 @@ const productColumns = [
   {
     key: "sku",
     label: "SKU",
-    width: "190px",
+    width: "200px",
+    align: "left" as const,
   },
   {
     key: "name",
@@ -37,7 +38,7 @@ const productColumns = [
     key: "weight",
     label: "무게",
     align: "right",
-    width: "70px",
+    width: "80px",
     render: (row: Product) =>
       row.weight ? formatNumber(row.weight) + "kg" : "-",
   },
@@ -52,7 +53,7 @@ const productColumns = [
   {
     key: "currency",
     label: "통화",
-    width: "80px",
+    width: "70px",
   },
   {
     key: "stockQuantity",
@@ -94,41 +95,8 @@ export default function ProductPage() {
   const { data: products = [], refetch } = useQuery<Product[]>({
     queryKey: ["products", filters.searchText],
     queryFn: () => getProducts(filters.searchText),
-    enabled: false,
+    enabled: true,
   });
-
-  /* -------------------------------------------------------------------------- */
-  /* 2. Memoized Data (Search)                                                  */
-  /* -------------------------------------------------------------------------- */
-  const filteredProducts = useMemo(() => {
-    const term = filters.searchText?.replace(/\s/g, "").toLowerCase();
-    if (!term) return products;
-
-    return products.filter((p) => {
-      const fieldsToSearch = [
-        p.id,
-        p.name,
-        p.sku,
-        p.price,
-        p.weight,
-        p.currency,
-        p.stockQuantity,
-        p.createdAt,
-        p.updatedAt,
-      ];
-
-      return fieldsToSearch.some((field) => {
-        if (field === null || field === undefined) return false;
-
-        const stringValue = field
-          .toLocaleString()
-          .replace(/\s/g, "")
-          .toLowerCase();
-
-        return stringValue.includes(term);
-      });
-    });
-  }, [products, filters.searchText]);
 
   /* -------------------------------------------------------------------------- */
   /* 3. Event Handlers (Business Logic)                                         */
@@ -137,12 +105,12 @@ export default function ProductPage() {
     (newFilters: Partial<typeof filters>) => {
       setFilters((prev) => ({ ...prev, ...newFilters }));
     },
-    [filters],
+    [],
   );
 
   const handleSearch = useCallback(async () => {
     await refetch();
-  }, [refetch]);
+  }, [refetch, filters.searchText]);
 
   const handleOpenDetail = useCallback((product: Product) => {
     setSelectedProduct(product);
@@ -176,7 +144,7 @@ export default function ProductPage() {
           <ViewCard className="hover:border-border! transition-none! hover:translate-y-0! hover:shadow-none! active:scale-100!">
             <ViewTable
               columns={productColumns}
-              data={filteredProducts}
+              data={products}
               initialPageSize={10}
               onRowClick={handleOpenDetail}
             />

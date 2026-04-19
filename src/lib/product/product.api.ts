@@ -57,14 +57,14 @@ export async function putProduct(input: ProductFormInput): Promise<Product> {
  * @returns
  */
 export async function deleteProduct(
-  productId: string,
+  sku: string,
 ): Promise<{ productId: string }> {
-  if (!productId) throw new Error("유효하지 않은 상품 ID 입니다.");
+  if (!sku) throw new Error("유효하지 않은 상품 ID 입니다.");
 
-  const res = await callApi<{ productId: string }, { productId: string }>(
+  const res = await callApi<{ sku: string }, undefined>(
     "/api/product",
     "DELETE",
-    { productId },
+    { sku },
   );
 
   return res.data!;

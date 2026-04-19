@@ -9,12 +9,39 @@ import { encryptGCM } from "../crypto/crypto";
 export async function getCustomers(
   startDate?: string,
   endDate?: string,
+  searchText?: string,
 ): Promise<Customer[]> {
+  const onlyNumberText = searchText?.replace(/[^0-9]/g, "");
+
+  let dateFilter = null;
+  if (onlyNumberText?.length === 8) {
+    const year = onlyNumberText.substring(0, 4);
+    const month = onlyNumberText.substring(4, 6);
+    const day = onlyNumberText.substring(6, 8);
+
+    dateFilter = {
+      gte: new Date(`${year}-${month}-${day}T00:00:00.000Z`),
+      lte: new Date(`${year}-${month}-${day}T23:59:59.999Z`),
+    };
+  }
+
   const where: Prisma.customersWhereInput = {
-    created_at: {
-      ...(startDate ? { gte: new Date(startDate) } : {}),
-      ...(endDate ? { lte: new Date(endDate) } : {}),
-    },
+    ...((startDate || endDate) && {
+      created_at: {
+        ...(startDate ? { gte: new Date(startDate) } : {}),
+        ...(endDate ? { lte: new Date(endDate) } : {}),
+      },
+    }),
+    ...(searchText && {
+      OR: [
+        { customer_name: { contains: searchText } },
+        { nick_name: { contains: searchText } },
+        { home_phone: { contains: formatPhone(searchText) } },
+        { mobile_phone: { contains: formatPhone(searchText) } },
+        { address: { contains: searchText } },
+        ...(dateFilter ? [{ created_at: dateFilter }] : []),
+      ].filter(Boolean) as Prisma.customersWhereInput[],
+    }),
   };
 
   const customers: customers[] = await prisma.customers.findMany({ where });

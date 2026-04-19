@@ -110,8 +110,8 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const body = await request.json();
-    const product = await deleteProduct(body);
+    const { sku } = await request.json();
+    const product = await deleteProduct(sku);
 
     const response: ApiResponse<typeof product> = {
       success: true,

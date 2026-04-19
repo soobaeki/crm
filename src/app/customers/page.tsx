@@ -3,7 +3,7 @@
 //////////////////////
 // import
 //////////////////////
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Customer } from "@/types/customer";
 import { Column } from "@/types/table";
@@ -39,7 +39,7 @@ const customerColumns = [
 export default function Page() {
   /* -------------------------------------------------------------------------- */
   /* 1. State & Queries                                                         */
-  /* -------------------------------------------------------------------------- */
+  /* ------------------------------------------------------------------------- */
   const [filters, setFilters] = useState({
     startDate: "",
     // startDate: dayjs().format("YYYY-MM-DD"),
@@ -52,29 +52,17 @@ export default function Page() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // 고객 리스트 조회 (enabled: false로 초기 로딩 제어 가능)
-  const {
-    data: customers = [],
-    refetch,
-    isFetching,
-  } = useQuery<Customer[]>({
-    queryKey: ["customers", filters.startDate, filters.endDate],
-    queryFn: () => getCustomers(filters.startDate, filters.endDate),
-    enabled: false,
+  const { data: customers = [], refetch } = useQuery<Customer[]>({
+    queryKey: [
+      "customers",
+      filters.startDate,
+      filters.endDate,
+      filters.searchText,
+    ],
+    queryFn: () =>
+      getCustomers(filters.startDate, filters.endDate, filters.searchText),
+    enabled: true,
   });
-
-  /* -------------------------------------------------------------------------- */
-  /* 2. Memoized Data (Search)                                                  */
-  /* -------------------------------------------------------------------------- */
-  const filteredCustomers = useMemo(() => {
-    const term = filters.searchText?.replace(/\s/g, "").toLowerCase();
-    if (!term) return customers;
-
-    return customers.filter((c) =>
-      [c.customerName, c.nickName, c.mobilePhone, c.homePhone, c.address].some(
-        (field) => field?.toLowerCase().includes(term),
-      ),
-    );
-  }, [customers, filters.searchText]);
 
   /* -------------------------------------------------------------------------- */
   /* 3. Event Handlers (Business Logic)                                         */
@@ -124,7 +112,7 @@ export default function Page() {
           <ViewCard className="hover:border-border! transition-none! hover:translate-y-0! hover:shadow-none! active:scale-100!">
             <ViewTable
               columns={customerColumns}
-              data={filteredCustomers}
+              data={customers}
               initialPageSize={10}
               onRowClick={handleOpenDetail}
             />

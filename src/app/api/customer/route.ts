@@ -17,8 +17,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate") || undefined;
     const endDate = searchParams.get("endDate") || undefined;
+    const searchText = searchParams.get("searchText") || undefined;
 
-    const customers = await getCustomers(startDate, endDate);
+    const customers = await getCustomers(startDate, endDate, searchText);
 
     const response: ApiResponse<typeof customers> = {
       success: true,

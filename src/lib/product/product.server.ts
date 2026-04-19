@@ -11,30 +11,22 @@ export const Currency = {
 // GET 메서드: 상품 목록 조회
 export async function selectProducts(searchText?: string): Promise<Product[]> {
   const onlyNumberText = searchText?.replace(/[^0-9]/g, "");
-  const isNumber = onlyNumberText && onlyNumberText.length > 0;
+  const isNumber = !!(onlyNumberText && onlyNumberText.length > 0);
   const numValue = isNumber ? Number(onlyNumberText) : null;
   const lowerSearch = searchText?.toLowerCase();
 
-  // 날짜 형식(YYYY-MM-DD)인지 체크
-  const isHyphenDate = searchText
-    ? /^\d{4}-\d{2}-\d{2}$/.test(searchText)
-    : false;
-  const isFullNumberDate = onlyNumberText?.length === 8; // YYYYMMDD 형태 체크
-
   // 2. 8자리 숫자(YYYYMMDD)를 날짜 범위로 변환
   let dateFilter = null;
-  if (isFullNumberDate && onlyNumberText) {
-    const year = parseInt(onlyNumberText.substring(0, 4));
-    const month = parseInt(onlyNumberText.substring(4, 6)) - 1;
-    const day = parseInt(onlyNumberText.substring(6, 8));
-    const date = new Date(year, month, day);
+  if (onlyNumberText?.length === 8) {
+    const year = onlyNumberText.substring(0, 4);
+    const month = onlyNumberText.substring(4, 6);
+    const day = onlyNumberText.substring(6, 8);
 
-    if (!isNaN(date.getTime())) {
-      dateFilter = {
-        gte: new Date(year, month, day, 0, 0, 0, 0),
-        lte: new Date(year, month, day, 23, 59, 59, 999),
-      };
-    }
+    // 뒤에 'T00:00:00.000Z'를 직접 붙여서 UTC 0시임을 명시합니다.
+    dateFilter = {
+      gte: new Date(`${year}-${month}-${day}T00:00:00.000Z`),
+      lte: new Date(`${year}-${month}-${day}T23:59:59.999Z`),
+    };
   }
 
   const where: Prisma.productsWhereInput = {
@@ -42,7 +34,7 @@ export async function selectProducts(searchText?: string): Promise<Product[]> {
       OR: [
         // 텍스트 기반 검색 (대소문자 무시) String 필드: mode: "insensitive" 사용 가능
         { name: { contains: searchText } },
-        { sku: { contains: searchText } }, // SKU 추가 추천
+        { sku: { contains: searchText } },
         { currency: { contains: searchText } },
 
         // 숫자 기반 검색 (값이 숫자일 때만 추가) 숫자 필드: mode를 빼고 값만
@@ -63,7 +55,7 @@ export async function selectProducts(searchText?: string): Promise<Product[]> {
 
         // 4. 날짜 검색 (YYYYMMDD 형태)
         ...(dateFilter
-          ? [{ created_at: dateFilter, updated_at: dateFilter }]
+          ? [{ created_at: dateFilter }, { updated_at: dateFilter }]
           : []),
       ].filter(Boolean) as Prisma.productsWhereInput[],
     }),
