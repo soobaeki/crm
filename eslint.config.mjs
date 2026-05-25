@@ -10,8 +10,10 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // 1. 기본 Next.js 및 TypeScript 설정
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
+  // 2. 추가 규칙들 (compat.config를 사용하여 플러그인 호환성 해결)
+  ...compat.config({
     files: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*d.ts"],
     plugins: ["import"],
     rules: {
@@ -40,7 +42,7 @@ const eslintConfig = [
       ],
       "no-unused-vars": "warn",
     },
-  },
+  }),
 ];
 
 export default eslintConfig;

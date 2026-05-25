@@ -4,7 +4,11 @@ import { useState } from "react";
 import MobileHeader from "./MobileHeader";
 import SideBar from "./SideBar";
 
-export default function NavBar() {
+interface IProps {
+  isLogin: boolean;
+}
+
+export default function NavBar({ isLogin }: IProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -13,7 +17,7 @@ export default function NavBar() {
       <MobileHeader open={open} onOpen={() => setOpen(true)} />
 
       {/* 사이드바 */}
-      <SideBar open={open} onClose={() => setOpen(false)} />
+      <SideBar open={open} onClose={() => setOpen(false)} isLogin={isLogin} />
 
       {/* 모바일 오버레이 */}
       {open && (

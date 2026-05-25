@@ -1,4 +1,5 @@
 import { Geist } from "next/font/google";
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import "@/styles/globals.css";
 import NavBar from "../components/layouts/NavBar";
@@ -17,25 +18,27 @@ export const metadata: Metadata = {
 };
 
 // RootLayout 컴포넌트
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const hasToken = cookieStore.has("token"); // true 또는 false
   return (
     <html
       className={geistSans.variable} // ✅ 가로 스크롤 방지
       lang="ko"
     >
       <body className="layout-root">
-        {/* 왼쪽 NavBar */}
-        <NavBar />
-        <div className="layout-container">
-          {/* 오른쪽 본문 */}
-          <main className="layout-main">
-            <Providers>{children}</Providers>
-          </main>
-        </div>
+        <Providers>
+          {/* 왼쪽 NavBar */}
+          <NavBar isLogin={hasToken} />
+          <div className="layout-container">
+            {/* 오른쪽 본문 */}
+            <main className="layout-main">{children}</main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

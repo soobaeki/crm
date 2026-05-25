@@ -118,7 +118,7 @@ model admins {
   id            Int           @id @default(autoincrement())
   admin_name    String        @unique(map: "admin_name") @db.VarChar(50)
   password_hash String        @db.VarChar(255)
-  role          admins_role?  @default(staff)
+  role          admins_role
   created_at    DateTime?     @default(now()) @db.DateTime(0)
   admin_sites   admin_sites[]
 }
@@ -145,6 +145,7 @@ enum customer_requests_priority {
 }
 
 enum admins_role {
-  superadmin
+  admin
   staff
+  guest
 }

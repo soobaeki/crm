@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
 import {
   CubeIcon,
   HomeIcon,
   ShieldExclamationIcon,
-  UserCircleIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
+import UserCard from "./UserCard";
 
 const navigation = [
   { name: "현황", href: "/dashboard", icon: HomeIcon },
@@ -36,9 +37,10 @@ const inactiveClass =
 interface IProps {
   open: boolean;
   onClose: () => void;
+  isLogin: boolean;
 }
 
-export default function SideBar({ open }: IProps) {
+export default function SideBar({ open, isLogin }: IProps) {
   const pathname = usePathname();
 
   return (
@@ -63,7 +65,7 @@ export default function SideBar({ open }: IProps) {
 
         {/* 메뉴 */}
         <nav className="flex-1 space-y-1.5 px-3 py-4">
-          {navigation.map((item) => {
+          {isLogin && navigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             const isChildActive =
               item.children?.some((c) => pathname === c.href || pathname.startsWith(c.href + "/")) ?? false;
@@ -121,8 +123,13 @@ export default function SideBar({ open }: IProps) {
 }
 
 function Logo() {
+  const { isLogin } = useAuthStore();
+
   return (
-    <Link href={"/dashboard"} className="flex h-16 items-center gap-3 px-3">
+    <Link
+      href={Boolean(isLogin) ? "/dashboard" : "/login"}
+      className="flex h-16 items-center gap-3 px-3"
+    >
       <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-lg">
         <CubeIcon className="text-primary-foreground h-6 w-6" />
       </div>
@@ -130,29 +137,5 @@ function Logo() {
         고객 관리 시스템
       </span>
     </Link>
-  );
-}
-
-function UserCard() {
-  return (
-    <div className="mt-auto px-4 py-4">
-      <div className="hover:bg-nav-hover-bg flex items-center gap-3 rounded-xl transition-colors">
-        <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-          <UserCircleIcon className="text-primary h-6 w-6" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-foreground truncate text-sm font-semibold">
-            Tom Cook
-          </p>
-          <p className="text-muted-foreground truncate text-xs">
-            tom@example.com
-          </p>
-        </div>
-      </div>
-
-      <p className="text-muted-foreground px-2 pt-2 text-[10px] font-medium">
-        © Devs Corp. All rights reserved.
-      </p>
-    </div>
   );
 }
