@@ -44,9 +44,6 @@ export async function POST(req: NextRequest) {
     const currentAdminId = admin.admin_name;
     const currentAdminRole = admin.role;
 
-    console.log("currentAdminId", currentAdminId);
-    console.log("currentAdminRole", currentAdminRole);
-
     // 2. 가입 완료되었으니 즉시 자동 로그인을 위한 JWT 토큰 생성
     const token = jwt.sign(
       { id: currentAdminId, role: currentAdminRole },

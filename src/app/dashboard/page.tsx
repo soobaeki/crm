@@ -3,6 +3,8 @@
 //////////////////////
 // import
 //////////////////////
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArcElement,
@@ -23,6 +25,7 @@ import { Column } from "@/types/table";
 import ViewBody from "@/components/commons/ViewBody";
 import ViewCard from "@/components/commons/ViewCard";
 import ViewContainer from "@/components/commons/ViewContainer";
+import ViewPopUp from "@/components/commons/ViewPopUp";
 import ViewRow from "@/components/commons/ViewRow";
 import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
@@ -49,9 +52,18 @@ ChartJS.register(
 // component start
 //////////////////////
 export default function DashBoardPage() {
-  //////////////////////
-  // state & router & query
-  //////////////////////
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+  const [isPopUpOpen, setIsPopUpOpen] = useState(false);
+
+  useEffect(() => {
+    if (error === "denied") {
+      setIsPopUpOpen(true);
+
+      window.history.replaceState({}, "", "/dashboard");
+    }
+  }, [error]);
+
   const { data: customerStats, isLoading } = useQuery<{
     total: number;
     recent30Days: number;
@@ -214,6 +226,13 @@ export default function DashBoardPage() {
           </ViewCard>
         </ViewRow>
       </ViewBody>
+
+      <ViewPopUp
+        isOpen={isPopUpOpen}
+        onClose={() => setIsPopUpOpen(false)}
+        title="알림"
+        children={"접근 권한이 없습니다. 관리자만 진입 가능합니다."}
+      />
     </ViewContainer>
   );
 }

@@ -3,6 +3,12 @@ import { Customer, CustomerFormInput } from "@/types/customer";
 import { prisma } from "@/lib/prisma";
 import { safeDecryptGCM } from "@/utils/crypto";
 import { formatDate, formatPhone } from "@/utils/formatters";
+import {
+  maskAddress,
+  maskCreateAt,
+  maskName,
+  maskPhone,
+} from "@/utils/masking";
 import { encryptGCM } from "../crypto/crypto";
 
 // GET 메서드: 고객 목록 조회
@@ -50,12 +56,16 @@ export async function getCustomers(
   return customers.map((customer, index) => ({
     index: index + 1,
     id: customer.id,
-    customerName: safeDecryptGCM(customer.customer_name) ?? "",
-    nickName: customer.nick_name ?? "",
-    homePhone: formatPhone(safeDecryptGCM(customer.home_phone) ?? ""),
-    mobilePhone: formatPhone(safeDecryptGCM(customer.mobile_phone) ?? ""),
-    address: customer.address ?? "",
-    createdAt: formatDate(customer.created_at) ?? "",
+    customerName: maskName(safeDecryptGCM(customer.customer_name) ?? ""),
+    nickName: maskName(customer.nick_name ?? ""),
+    homePhone: maskPhone(
+      formatPhone(safeDecryptGCM(customer.home_phone) ?? ""),
+    ),
+    mobilePhone: maskPhone(
+      formatPhone(safeDecryptGCM(customer.mobile_phone) ?? ""),
+    ),
+    address: maskAddress(customer.address ?? ""),
+    createdAt: maskCreateAt(formatDate(customer.created_at) ?? ""),
   }));
 }
 

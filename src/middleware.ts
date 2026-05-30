@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // 1. 저장된 토큰(쿠키) 가져오기
   const token = request.cookies.get("token")?.value;
 
@@ -19,6 +20,27 @@ export function middleware(request: NextRequest) {
   // (로그인 페이지 자체나 API 경로는 제외해야 무한 루프에 안빠짐)
   if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+      const { payload } = await jwtVerify(token, secret);
+
+      const userRole = payload.role as string;
+      console.log("현재 유저의 역할(Role): ", userRole);
+
+      if (userRole !== "admin" && pathname.startsWith("/admin")) {
+        return NextResponse.redirect(
+          new URL("/dashboard?error=denied", request.url),
+        );
+      }
+    } catch (error) {
+      console.log("error", error);
+      const response = NextResponse.redirect(new URL("/login", request.url));
+      response.cookies.delete("token");
+      return response;
+    }
   }
 
   // 4. 이미 로그인이 됐는데 로그인 페이지로 가려고 할 때
