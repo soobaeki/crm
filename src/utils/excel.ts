@@ -28,6 +28,25 @@ const numberFields: (keyof RowData)[] = [
   "paymentAmount",
 ];
 
+function formatOrderDate(value: any): string | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  let dateStr = String(value).replace(/,/g, "").trim();
+
+  if (dateStr.length === 8 && !isNaN(Number(dateStr))) {
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    return `${year}-${month}-${day}`;
+  }
+
+  if (dateStr.includes("-") || dateStr.startsWith("/")) {
+    return dateStr;
+  }
+
+  return dateStr;
+}
+
 /**
  * CSV 파일 읽기
  */
@@ -43,7 +62,9 @@ export async function readCsvFile(file: File): Promise<RowData[]> {
           for (const [header, value] of Object.entries(row)) {
             const key = headerMap[header];
             if (key) {
-              if (numberFields.includes(key)) {
+              if (key === "orderDate" || key === "paymentDate") {
+                (rowData as any)[key] = formatOrderDate(value);
+              } else if (numberFields.includes(key)) {
                 (rowData as any)[key] = value ? Number(value) : null;
               } else {
                 (rowData as any)[key] = value || null;
@@ -97,7 +118,9 @@ export async function readExcelFile(file: File): Promise<RowData[]> {
         } else if (typeof cell.value === "number") {
           value = cell.value;
         } else if (cell.value instanceof Date) {
-          value = cell.value.toISOString().split("T")[0];
+          const d = cell.value;
+          const offset = d.getTimezoneOffset() * 60000;
+          value = new Date(d.getTime() - offset).toISOString().split("T")[0];
         } else if (
           typeof cell.value === "object" &&
           "text" in cell.value &&
@@ -109,7 +132,9 @@ export async function readExcelFile(file: File): Promise<RowData[]> {
         const header = headers[colNumber - 1] ?? `column${colNumber}`;
         const key = headerMap[header];
         if (key) {
-          if (numberFields.includes(key)) {
+          if (key === "orderDate" || key === "paymentDate") {
+            (rowData as any)[key] = formatOrderDate(value);
+          } else if (numberFields.includes(key)) {
             (rowData as any)[key] = value ? Number(value) : null;
           } else {
             (rowData as any)[key] = value || null;

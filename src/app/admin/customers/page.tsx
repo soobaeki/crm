@@ -4,7 +4,7 @@
 // import
 //////////////////////
 import { useCallback, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RowData } from "@/types/excel";
 import { Column } from "@/types/table";
 import ViewBody from "@/components/commons/ViewBody";
@@ -16,6 +16,7 @@ import ViewTable from "@/components/commons/ViewTable";
 import ViewTitle from "@/components/commons/ViewTitle";
 import ExcelActionBar from "@/components/excels/ExcelActionBar";
 import {
+  convertToRoadAddress,
   getSearchExcelListApi,
   postUploadExcelApi,
 } from "@/lib/excel/excel.api";
@@ -64,6 +65,8 @@ export default function page() {
   const [_, setIsModalOpen] = useState(false);
   const [data, setData] = useState<RowData[]>([]);
 
+  const queryClient = useQueryClient();
+
   // useQuery
   const { data: rowData = [], refetch } = useQuery<RowData[]>({
     queryKey: ["excelList", filters],
@@ -71,10 +74,23 @@ export default function page() {
     enabled: false,
   });
 
+  const addressCleanMutation = useMutation({
+    mutationFn: async (rows: RowData[]) => convertToRoadAddress(rows),
+    onSuccess: (data) => {
+      setData(data);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
   // useMemo
   const filteredRowData = useMemo(() => {
     const searchText = filters.searchText?.trim().toLowerCase();
-    return rowData.filter((row) => {
+
+    const targetData = data.length > 0 ? data : rowData;
+
+    return targetData.filter((row) => {
       // searchText 필터
       if (searchText) {
         const matchesText = Object.values(row)
@@ -92,7 +108,7 @@ export default function page() {
       // 통과
       return true;
     });
-  }, [rowData, filters]);
+  }, [rowData, data, filters]);
 
   // useMutation
   const mutation = useMutation({
@@ -100,6 +116,7 @@ export default function page() {
     onSuccess: () => {
       alert("DB에 성공적으로 저장되었습니다!");
       setData([]);
+      queryClient.invalidateQueries({ queryKey: ["excelList"] });
     },
     onError: (error) => {
       console.error(error);
@@ -119,6 +136,7 @@ export default function page() {
 
   // 조회 버튼 클릭 시 실행될 함수
   const handleSearch = useCallback(async () => {
+    setData([]);
     await refetch();
   }, [refetch]);
 
@@ -154,10 +172,13 @@ export default function page() {
           {/* 업로드 / 다운로드 */}
           <ExcelActionBar
             data={data}
-            uploading={mutation.status === "pending"}
+            uploading={
+              mutation.status === "pending" ||
+              addressCleanMutation.status === "pending"
+            }
             onUpload={handleUpload}
             onDownload={handleDownload}
-            onParsed={(rows) => setData(rows)}
+            onParsed={(rows) => addressCleanMutation.mutate(rows)}
           />
 
           <ViewCard className="hover:border-border! transition-none! hover:translate-y-0! hover:shadow-none! active:scale-100!">

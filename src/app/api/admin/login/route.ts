@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 import { createAdminAccount, loginInfo } from "@/lib/login/login.server";
 
 export async function POST(req: NextRequest) {
@@ -44,12 +44,25 @@ export async function POST(req: NextRequest) {
     const currentAdminId = admin.admin_name;
     const currentAdminRole = admin.role;
 
-    // 2. 가입 완료되었으니 즉시 자동 로그인을 위한 JWT 토큰 생성
-    const token = jwt.sign(
-      { id: currentAdminId, role: currentAdminRole },
+    const secretKey = new TextEncoder().encode(
       process.env.JWT_SECRET as string,
-      { expiresIn: "1d" }, // 토큰 유효기간 1일
     );
+
+    const token = await new jose.SignJWT({
+      id: currentAdminId,
+      role: currentAdminRole,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(secretKey);
+
+    // 2. 가입 완료되었으니 즉시 자동 로그인을 위한 JWT 토큰 생성
+    // const token = jwt.sign(
+    //   { id: currentAdminId, role: currentAdminRole },
+    //   process.env.JWT_SECRET as string,
+    //   { expiresIn: "1d" }, // 토큰 유효기간 1일
+    // );
 
     // 3. 클라이언트에 보낼 기본 JSON 응답 생성
     const response = NextResponse.json(
@@ -72,7 +85,7 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production", // 프로덕션(HTTPS)에서만 true, 로컬은 false 가능
       sameSite: "lax", // CSRF 공격 방어
       path: "/", // 전체 경로에서 쿠키 접근 가능
-      maxAge: 60 * 60 * 24, // 쿠키 수명: 1일 (초 단위)
+      // maxAge: 60 * 60 * 24, // 쿠키 수명: 1일 (초 단위)
     });
 
     return response;

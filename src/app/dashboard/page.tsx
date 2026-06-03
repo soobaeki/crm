@@ -4,8 +4,9 @@
 // import
 //////////////////////
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ArcElement,
   BarElement,
@@ -34,6 +35,7 @@ import {
   getCustomerStats,
   getRegionCustomerCounts,
 } from "@/lib/customer/customer.api";
+import { logoutInfo } from "@/lib/login/login.api";
 import { getTodaysOrdersCustomers } from "@/lib/order/order.api";
 
 ChartJS.register(
@@ -55,6 +57,34 @@ export default function DashBoardPage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [isPopUpOpen, setIsPopUpOpen] = useState(false);
+
+  // 웹페이지 닫고 다시 열 경우
+  const { isLogin, logout } = useAuthStore();
+  const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  const logoutMutation = useMutation({
+    mutationFn: () => logoutInfo(),
+    onSuccess: (data) => {
+      logout();
+      sessionStorage.clear();
+      router.replace("login");
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated && !isLogin) {
+      console.log("로그인 세션이 만료되었습니다. 로그인 페이지로 이동합니다.");
+      logoutMutation.mutate();
+    }
+  }, [isHydrated, isLogin, router]);
 
   useEffect(() => {
     if (error === "denied") {

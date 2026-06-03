@@ -35,7 +35,7 @@ export default function ExcelActionBar({
 
     try {
       setLoading(true);
-      setFileName(file.name);
+      setFileName(data.length === 0 ? "" : file.name);
 
       const rows = await readFile(file);
       onParsed(rows);

@@ -1,6 +1,5 @@
-import { Prisma, customers } from "@prisma/client/edge";
-import { Customer, CustomerFormInput } from "@/types/customer";
 import { prisma } from "@/lib/prisma";
+import { Customer, CustomerFormInput } from "@/types/customer";
 import { safeDecryptGCM } from "@/utils/crypto";
 import { formatDate, formatPhone } from "@/utils/formatters";
 import {
@@ -9,6 +8,9 @@ import {
   maskName,
   maskPhone,
 } from "@/utils/masking";
+import { Prisma, customers } from "@prisma/client/edge";
+import * as jose from "jose";
+import { cookies } from "next/headers";
 import { encryptGCM } from "../crypto/crypto";
 
 // GET 메서드: 고객 목록 조회
@@ -50,22 +52,45 @@ export async function getCustomers(
     }),
   };
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  let userRole = "guest";
+
+  if (token) {
+    try {
+      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
+      const { payload } = await jose.jwtVerify(token, secretKey);
+
+      if (payload && typeof payload.role === "string") {
+        userRole = payload.role;
+      }
+    } catch (error) {
+      console.log("만로되었거나 유효하지 않은 JWT 토큰입니다.");
+    }
+  }
+
   const customers: customers[] = await prisma.customers.findMany({ where });
 
   // 복호화 처리
   return customers.map((customer, index) => ({
     index: index + 1,
     id: customer.id,
-    customerName: maskName(safeDecryptGCM(customer.customer_name) ?? ""),
-    nickName: maskName(customer.nick_name ?? ""),
+    customerName: maskName(
+      safeDecryptGCM(customer.customer_name) ?? "",
+      userRole,
+    ),
+    nickName: maskName(customer.nick_name ?? "", userRole),
     homePhone: maskPhone(
       formatPhone(safeDecryptGCM(customer.home_phone) ?? ""),
+      userRole,
     ),
     mobilePhone: maskPhone(
       formatPhone(safeDecryptGCM(customer.mobile_phone) ?? ""),
+      userRole,
     ),
-    address: maskAddress(customer.address ?? ""),
-    createdAt: maskCreateAt(formatDate(customer.created_at) ?? ""),
+    address: maskAddress(customer.address ?? "", userRole),
+    createdAt: maskCreateAt(formatDate(customer.created_at) ?? "", userRole),
   }));
 }
 
@@ -146,10 +171,28 @@ export async function getCustomerIssues() {
     },
   });
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  let userRole = "guest";
+
+  if (token) {
+    try {
+      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
+      const { payload } = await jose.jwtVerify(token, secretKey);
+
+      if (payload && typeof payload.role === "string") {
+        userRole = payload.role;
+      }
+    } catch (error) {
+      console.log("만로되었거나 유효하지 않은 JWT 토큰입니다.");
+    }
+  }
+
   const result = issues.map((issue) => ({
-    customerName: issue.customers.customer_name,
+    customerName: maskName(issue.customers.customer_name, userRole),
     content: issue.content,
-    createdAt: formatDate(issue.created_at),
+    createdAt: maskCreateAt(formatDate(issue.created_at) as string, userRole),
     status: issue.status,
     priority: issue.priority,
     handledBy: issue.handled_by,

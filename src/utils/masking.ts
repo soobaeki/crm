@@ -1,5 +1,6 @@
 // 홍길동 -> 홍*동
-export function maskName(name: string): string {
+export function maskName(name: string, role: string): string {
+  if (role === "admin") return name;
   if (!name) return "";
   if (name.length <= 2) {
     return name.charAt(0) + "*";
@@ -8,7 +9,8 @@ export function maskName(name: string): string {
 }
 
 // 010-1234-5678 => 010-****-5678, 02-***-4567
-export function maskPhone(phone: string): string {
+export function maskPhone(phone: string, role: string): string {
+  if (role === "admin") return phone;
   if (!phone) return "";
 
   const parts = phone.split("-");
@@ -20,7 +22,8 @@ export function maskPhone(phone: string): string {
 }
 
 // 서울시 강남구 테헤란로... -> 서울시 강남구 ****
-export function maskAddress(address: string): string {
+export function maskAddress(address: string, role: string): string {
+  if (role === "admin") return address;
   if (!address) return "";
 
   const parts = address.split(" ");
@@ -35,7 +38,8 @@ export function maskAddress(address: string): string {
 }
 
 // 2026-01-01 => 20**-0*-0*
-export function maskCreateAt(createAt: string): string {
+export function maskCreateAt(createAt: string, role: string): string {
+  if (role === "admin") return createAt;
   if (!createAt) return "";
 
   const parts = createAt.split("-");

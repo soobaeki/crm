@@ -11,8 +11,8 @@ datasource db {
 model shipping_address {
   id              Int       @id @default(autoincrement())
   order_id        Int
-  recipient_name  String?   @db.VarChar(20)
-  recipient_phone String?   @db.VarChar(20)
+  recipient_name  String?   @db.VarChar(255)
+  recipient_phone String?   @db.VarChar(255)
   address_line1   String?   @db.VarChar(2000)
   address_line2   String?   @db.VarChar(2000)
   city            String?   @db.VarChar(200)
@@ -28,7 +28,7 @@ model orders {
   id           Int           @id @default(autoincrement())
   customer_id  Int
   order_date   DateTime?     @db.Date
-  orderer_name String?       @db.VarChar(100)
+  orderer_name String?       @db.VarChar(255)
   total_amount Int?          @default(0)
   status       String?       @default("PENDING") @db.VarChar(32)
   created_at   DateTime      @default(now()) @db.DateTime(0)
@@ -58,11 +58,11 @@ model customer_requests {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model customers {
   id                Int                 @id @default(autoincrement())
-  customer_name     String              @db.VarChar(255)
-  nick_name         String?             @db.VarChar(50)
+  customer_name     String?             @db.VarChar(255)
+  nick_name         String?             @db.VarChar(255)
   home_phone        String?             @db.VarChar(255)
-  mobile_phone      String              @db.VarChar(255)
-  address           String?             @db.VarChar(2000)
+  mobile_phone      String?             @db.VarChar(255)
+  address           String?             @db.VarChar(500)
   created_at        DateTime?           @default(now()) @db.DateTime(0)
   updated_at        DateTime?           @default(now()) @db.DateTime(0)
   customer_requests customer_requests[]

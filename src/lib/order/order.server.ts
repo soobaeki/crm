@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
+import * as jose from "jose";
 import { OrderFormInput, OrderItemFormInput } from "@/types/order";
+import { maskAddress, maskCreateAt, maskName } from "@/utils/masking";
 import { prisma } from "../prisma";
 
 const OrderStatus = {
@@ -169,11 +172,32 @@ export async function getTodaysOrdersCustomers() {
     },
   });
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  let userRole = "guest";
+
+  if (token) {
+    try {
+      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
+      const { payload } = await jose.jwtVerify(token, secretKey);
+
+      if (payload && typeof payload.role === "string") {
+        userRole = payload.role;
+      }
+    } catch (error) {
+      console.log("만로되었거나 유효하지 않은 JWT 토큰입니다.");
+    }
+  }
+
   const result = orders.flatMap((order) =>
     order.order_items.map((item) => ({
-      customerName: order.customer.customer_name,
-      address: order.customer.address,
-      orderDate: order.order_date?.toLocaleDateString("ko-KR"),
+      customerName: maskName(order.customer.customer_name, userRole),
+      address: maskAddress(order.customer.address || "", userRole),
+      orderDate: maskCreateAt(
+        order.order_date?.toLocaleDateString("ko-KR") || "",
+        userRole,
+      ),
       productName: item.product_name_snapshot,
       quantity: item.quantity,
       totalPrice: item.quantity * item.unit_price_snapshot,

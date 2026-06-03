@@ -48,3 +48,18 @@ export async function getSearchExcelListApi(
 
   return res.data!;
 }
+
+/**
+ * 최신 도로명 주소 가져오기
+ */
+export async function convertToRoadAddress(
+  rows: RowData[],
+): Promise<RowData[]> {
+  const res = await callApi<RowData[], RowData[]>(
+    `/api/excel/clean-address`,
+    "POST",
+    rows,
+  );
+
+  return res.data!;
+}
