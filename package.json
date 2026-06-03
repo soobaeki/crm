@@ -11,7 +11,8 @@
     "test": "jest",
     "format": "prettier --write .",
     "prisma:update": "npx prisma db pull && npx prisma generate",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "vercel:test": "prisma generate && npm run type-check && next build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

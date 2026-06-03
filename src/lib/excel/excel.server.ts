@@ -34,8 +34,8 @@ export async function postUploadExcelServer(rows: RowData[]) {
 
     for (const dbCust of dbCustomers) {
       try {
-        const decryptedName = decryptGCM(dbCust.customer_name).trim();
-        const decryptedMobile = decryptGCM(dbCust.mobile_phone).replace(
+        const decryptedName = decryptGCM(dbCust.customer_name ?? "").trim();
+        const decryptedMobile = decryptGCM(dbCust.mobile_phone ?? "").replace(
           /[^0-9]/g,
           "",
         );
@@ -291,7 +291,7 @@ export async function getSearchExcelListServer(params: IExcelSearchFilter) {
     orders.forEach((order) => {
       try {
         // 암호화된 컬럼들 완전 해제(복호화)
-        const decCustomerName = decryptGCM(order.customer.customer_name);
+        const decCustomerName = decryptGCM(order.customer.customer_name || "");
         const decNickName = decryptGCM(order.customer.nick_name || "");
         const decAddress = decryptGCM(order.customer.address || "");
         const decOrdererName = decryptGCM(order.orderer_name || "");
