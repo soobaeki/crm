@@ -192,7 +192,7 @@ export async function getTodaysOrdersCustomers() {
 
   const result = orders.flatMap((order) =>
     order.order_items.map((item) => ({
-      customerName: maskName(order.customer.customer_name, userRole),
+      customerName: maskName(order.customer.customer_name ?? "", userRole),
       address: maskAddress(order.customer.address || "", userRole),
       orderDate: maskCreateAt(
         order.order_date?.toLocaleDateString("ko-KR") || "",

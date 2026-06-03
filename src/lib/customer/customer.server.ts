@@ -1,5 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { Prisma, customers } from "@prisma/client/edge";
+import * as jose from "jose";
 import { Customer, CustomerFormInput } from "@/types/customer";
+import { prisma } from "@/lib/prisma";
 import { safeDecryptGCM } from "@/utils/crypto";
 import { formatDate, formatPhone } from "@/utils/formatters";
 import {
@@ -8,9 +11,6 @@ import {
   maskName,
   maskPhone,
 } from "@/utils/masking";
-import { Prisma, customers } from "@prisma/client/edge";
-import * as jose from "jose";
-import { cookies } from "next/headers";
 import { encryptGCM } from "../crypto/crypto";
 
 // GET 메서드: 고객 목록 조회
@@ -190,7 +190,7 @@ export async function getCustomerIssues() {
   }
 
   const result = issues.map((issue) => ({
-    customerName: maskName(issue.customers.customer_name, userRole),
+    customerName: maskName(issue.customers.customer_name ?? "", userRole),
     content: issue.content,
     createdAt: maskCreateAt(formatDate(issue.created_at) as string, userRole),
     status: issue.status,
