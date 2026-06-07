@@ -35,6 +35,13 @@ export async function middleware(request: NextRequest) {
           new URL("/dashboard?error=denied", request.url),
         );
       }
+
+      // 주문 수정 API(PUT) 요청이 들어왔는데 guest라면 차단
+      if (pathname.startsWith("/api/order") && request.method === "PUT") {
+        if (userRole === "guest") {
+          return new NextResponse("Forbidden", { status: 403 });
+        }
+      }
     } catch (error) {
       console.log("error", error);
       const response = NextResponse.redirect(new URL("/login", request.url));

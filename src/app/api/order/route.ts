@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 import { OrderFormInput, OrderItemFormInput } from "@/types/order";
 import { ApiResponse } from "@/lib/core";
 import {
@@ -86,7 +88,31 @@ export async function POST(request: NextRequest) {
  * @returns
  */
 export async function PUT(request: NextRequest) {
+  // 1. 토큰에서 사용자 정보(role 포함) 가져오기
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: "로그인이 필요합니다." },
+      { status: 401 },
+    );
+  }
+
   try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+
+    // 여기서 로그를 찍어서 정말 guest인지 확인하세요!
+    console.log("🔥 [백엔드 권한 체크] 현재 유저 Role:", payload.role);
+    if (payload.role === "guest") {
+      console.log("🛑 [권한 차단] 게스트가 수정 시도함!");
+      return NextResponse.json(
+        { error: "수정 권한이 없습니다." },
+        { status: 403 },
+      );
+    }
+
     const body = await request.json();
     const { orderData, itemsData } = body;
 

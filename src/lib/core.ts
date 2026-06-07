@@ -22,7 +22,16 @@ export async function callApi<TReq = unknown, TRes = unknown>(
     throw new Error("서버 응답 파싱 실패");
   }
 
-  if (!res.ok || !json.success) {
+  // 👑 핵심 수정: res.ok가 아닐 때 서버가 준 에러 메시지를 우선 사용!
+  if (!res.ok) {
+    // 서버가 { error: "수정 권한이 없습니다." } 라고 보내면 그걸 그대로 던집니다.
+    const errorMessage = json?.error || json?.message || "API 요청 실패";
+    const error = new Error(errorMessage);
+    (error as any).status = res.status; // 👈 상태 코드(403 등)를 에러 객체에 부착
+    throw error;
+  }
+
+  if (!json.success) {
     throw new Error(json?.message || "API 요청 실패");
   }
 
@@ -33,4 +42,5 @@ export type ApiResponse<T> = {
   success: boolean;
   message: string;
   data: T | null;
+  error?: string;
 };

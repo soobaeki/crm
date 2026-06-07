@@ -143,8 +143,11 @@ export default function CustomerModal({
       refetch(); // 테이블 데이터 새로고침
     },
     onError: (error) => {
-      console.error("주문 수정 실패:", error);
-      alert("주문 수정 중 오류가 발생했습니다.");
+      // 👑 드디어 서버 메시지가 들어옵니다!
+      console.log("에러 객체 확인:", error);
+
+      // API에서 던진 Error(errorMessage)의 message가 바로 '수정 권한이 없습니다.' 입니다.
+      alert(error.message);
     },
   });
 
