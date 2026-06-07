@@ -10,7 +10,8 @@ import {
   getCustomerOrderHistory,
   updateCustomer,
 } from "@/lib/customer/customer.api";
-import { formatPhone } from "@/utils/formatters";
+import { updateOrder } from "@/lib/order/order.api";
+import { formatNumber, formatPhone } from "@/utils/formatters";
 import ViewModal from "../commons/ViewModal";
 import ViewTable from "../commons/ViewTable";
 
@@ -48,18 +49,24 @@ const orderColumns = [
     label: "품목가격",
     width: "120px",
     align: "right" as const,
+    render: (row: OrderItemRow) =>
+      row.unitPriceSnapshot ? formatNumber(row.unitPriceSnapshot) + "원" : "-",
   },
   {
     key: "quantity",
     label: "수량",
     width: "70px",
     align: "right" as const,
+    render: (row: OrderItemRow) =>
+      row.quantity ? formatNumber(row.quantity) + "개" : "-",
   },
   {
     key: "lineTotal",
     label: "금액",
     width: "120px",
     align: "right" as const,
+    render: (row: OrderItemRow) =>
+      row.lineTotal ? formatNumber(row.lineTotal) + "원" : "-",
   },
 ] satisfies Column<OrderItemRow>[];
 
@@ -73,6 +80,11 @@ export default function CustomerModal({
   const [formData, setFormData] = useState<Partial<Customer>>(
     mode === "create" ? emptyCustomer : { ...customer },
   );
+  // 👑 [인라인 수정용 상태] 현재 어떤 주문을 수정 중인지 id를 기록하고, 임시 입력값을 담습니다.
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [editQuantity, setEditQuantity] = useState<number>(0);
+  const [editOrderDate, setEditOrderDate] = useState<string>(""); // 💡 날짜 수정용
+  const [editProductName, setEditProductName] = useState<string>(""); // 💡 상품명 수정용
 
   const queryClient = useQueryClient();
 
@@ -90,6 +102,50 @@ export default function CustomerModal({
       return getCustomerOrderHistory(formData.id);
     },
     enabled: !!formData.id, // ID가 있을 때만 실행
+  });
+
+  // 👑 [주문 수정용 Mutation]
+  const { mutate: handleOrderUpdate } = useMutation({
+    mutationFn: ({
+      orderId,
+      item,
+    }: {
+      orderId: number;
+      item: OrderItemRow; // 👈 여기 있던 quantity: number; 를 삭제!
+    }) => {
+      // 1️⃣ 첫 번째 인자: orderData 규격 맞추기
+      const orderForm = {
+        id: orderId, // 💡 백엔드 상에서 어떤 주문을 고칠지 ID 포함
+        customerId: formData.id!,
+        orderDate: new Date(editOrderDate), // 💡 인라인에서 수정한 날짜 적용!
+        ordererName: formData.customerName!,
+        status: item.status,
+      };
+
+      // 2️⃣ 두 번째 인자: itemsData 규격 맞추기 (배열이 아닌 '단일 객체'로 보냅니다)
+      const itemForm = {
+        orderId: orderId,
+        productId: item.productId,
+        productNameSnapshot: editProductName, // 💡 인라인에서 수정한 상품명 적용!
+        unitPriceSnapshot: item.unitPriceSnapshot,
+        quantity: editQuantity, // 💡 인라인에서 수정한 수량 적용!
+        lineTotal: item.unitPriceSnapshot * editQuantity, // 수정된 수량에 맞게 총액 재계산
+        discount: item.discount,
+        tax: item.tax,
+      };
+
+      // 👑 실제 api 파일에 정의된 updateOrder(orderData, itemsData)를 호출!
+      return updateOrder(orderForm, itemForm);
+    },
+    onSuccess: () => {
+      alert("주문이 수정되었습니다.");
+      setEditingItemId(null); // 편집 모드 종료
+      refetch(); // 테이블 데이터 새로고침
+    },
+    onError: (error) => {
+      console.error("주문 수정 실패:", error);
+      alert("주문 수정 중 오류가 발생했습니다.");
+    },
   });
 
   // 고객 정보 등록
@@ -150,6 +206,159 @@ export default function CustomerModal({
       handleCreate(formData as CustomerFormInput);
     }
   };
+
+  // =================================================================
+  // 👑 테이블 컬럼 정의 (인라인 수정을 위해 내부에서 동적으로 렌더링하도록 맵핑)
+  // =================================================================
+  const orderColumns = [
+    { key: "id", label: "순번", width: "70px" },
+    {
+      key: "orderDate",
+      label: "주문일자",
+      width: "160px",
+      render: (row: OrderItemRow) => {
+        if (editingItemId === row.id) {
+          return (
+            <input
+              type="date"
+              value={editOrderDate}
+              onChange={(e) => setEditOrderDate(e.target.value)}
+              className="focus:outline-primary w-full rounded border border-gray-300 px-2 py-0.5 text-xs text-black"
+            />
+          );
+        }
+        return row.orderDate
+          ? new Date(row.orderDate).toLocaleDateString("ko-KR")
+          : "-";
+      },
+    },
+    {
+      key: "productNameSnapshot",
+      label: "상품명",
+      align: "left" as const,
+      render: (row: OrderItemRow) => {
+        if (editingItemId === row.id) {
+          return (
+            <input
+              type="text"
+              value={editProductName}
+              onChange={(e) => setEditProductName(e.target.value)}
+              className="focus:outline-primary w-full rounded border border-gray-300 px-2 py-0.5 text-sm text-black"
+            />
+          );
+        }
+        return row.productNameSnapshot;
+      },
+    },
+    {
+      key: "unitPriceSnapshot",
+      label: "품목가격",
+      width: "120px",
+      align: "right" as const,
+      render: (row: OrderItemRow) => `${formatNumber(row.unitPriceSnapshot)}원`,
+    },
+    {
+      key: "quantity",
+      label: "수량",
+      width: "110px",
+      align: "center" as const,
+      render: (row: OrderItemRow) => {
+        // 현재 이 행이 내가 '수정' 버튼을 누른 행이라면 input 박스를 보여줍니다!
+        if (editingItemId === row.id) {
+          return (
+            <input
+              type="number"
+              min={1}
+              value={editQuantity}
+              onChange={(e) => setEditQuantity(Number(e.target.value))}
+              className="focus:outline-primary w-16 rounded border border-gray-300 px-2 py-0.5 text-center text-black"
+            />
+          );
+        }
+        return `${formatNumber(row.quantity)}개`;
+      },
+    },
+    {
+      key: "lineTotal",
+      label: "금액",
+      width: "120px",
+      align: "right" as const,
+      render: (row: OrderItemRow) => {
+        // 수정 중일 때는 타이핑에 맞춰 실시간으로 가상 금액 계산
+        if (editingItemId === row.id) {
+          return `${formatNumber(row.unitPriceSnapshot * editQuantity)}원`;
+        }
+        return `${formatNumber(row.lineTotal)}원`;
+      },
+    },
+    {
+      key: "actions",
+      label: "관리",
+      width: "100px",
+      align: "center" as const,
+      render: (row: OrderItemRow) => {
+        if (editingItemId === row.id) {
+          return (
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => {
+                  const targetOrderId = row.orderId || (row as any).order_id;
+
+                  console.log(
+                    "====== 💻 프론트엔드 클릭 시점 데이터 검증 💻 ======",
+                  );
+                  console.log("row전체 데이터:", row);
+                  console.log("추출된 targetOrderId:", targetOrderId);
+                  console.log("고객 정보 ID (formData.id):", formData.id);
+                  console.log(
+                    "==================================================",
+                  );
+
+                  if (
+                    !targetOrderId ||
+                    Number(targetOrderId) === Number(formData.id)
+                  ) {
+                    alert(
+                      `오류: 가져온 주문 고유번호(${targetOrderId})가 고객번호(${formData.id})와 같거나 비어있습니다. 데이터를 가져오는 백엔드 GET 쿼리를 확인해야 합니다.`,
+                    );
+                    return;
+                  }
+                  handleOrderUpdate({ orderId: row.orderId, item: row });
+                }}
+                className="text-xs font-bold text-emerald-600 hover:underline"
+              >
+                저장
+              </button>
+              <button
+                onClick={() => setEditingItemId(null)}
+                className="text-xs font-bold text-gray-400 hover:underline"
+              >
+                취소
+              </button>
+            </div>
+          );
+        }
+        return (
+          <button
+            onClick={() => {
+              setEditingItemId(row.id);
+              setEditQuantity(row.quantity);
+              setEditProductName(row.productNameSnapshot);
+              // 날짜형식(Date)을 <input type="date">가 읽을 수 있는 "YYYY-MM-DD" 형태로 파싱하여 주입
+              const rawDate = row.orderDate
+                ? new Date(row.orderDate)
+                : new Date();
+              const formattedDate = rawDate.toISOString().split("T")[0];
+              setEditOrderDate(formattedDate);
+            }}
+            className="text-primary text-xs font-bold hover:underline"
+          >
+            수정
+          </button>
+        );
+      },
+    },
+  ] satisfies Column<OrderItemRow>[];
 
   const fields = [
     {

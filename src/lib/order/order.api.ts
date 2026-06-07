@@ -44,23 +44,20 @@ export async function postOrder(
 /**
  * 주문 수정
  *
- * @param orderData 주문 입력 데이터
+ * @param orderData 주문 입력 데이터 (수정 대상 ID 포함)
  * @param itemsData 상품 입력 데이터
  * @returns
  */
 export async function updateOrder(
-  orderData: OrderFormInput,
+  orderData: OrderFormInput & { id: number },
   itemsData: OrderItemFormInput,
-): Promise<{ orderData: Order; itemsData: OrderItem[] }> {
-  const res = await callApi<
-    { orderData: OrderFormInput; itemsData: OrderItemFormInput },
-    { orderData: Order; itemsData: OrderItem[] }
-  >("api/order", "PUT", {
+): Promise<any> {
+  // 👑 확실하게 orderData 안에 id가 포함되어 PUT 바디로 날아가는지 체크
+  const res = await callApi<any, any>("api/order", "PUT", {
     orderData,
     itemsData,
   });
-
-  return res.data!;
+  return res;
 }
 
 /**

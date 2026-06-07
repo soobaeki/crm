@@ -22,8 +22,20 @@ export interface CustomerRequest {
 export type CustomerRequestFormInput = Omit<Customer, "id" | "createdAt">;
 
 export interface CustomerStats {
-  total: number;
-  recent30Days: number;
+  customerTotal: number;
+  customerTotalTrend: number; // 전일 대비 증가율 (%)
+
+  // 2. 신규 고객 수 관련 (최근 30일)
+  customerRecent30Days: number;
+  customerRecentTrend: number; // 기존 고정 컴포넌트 데이터 유지용 가상 트렌드
+
+  // 3. 오늘 주문 건수 관련
+  todayOrderCount: number;
+  orderTrend: number; // 어제 대비 주문 증감률 (%)
+
+  // 4. 재구매율 관련
+  retentionRate: number; // 퍼센트 단위 데이터 (예: 72.5)
+  retentionTrend: number; // 재구매율 추이 트렌드
 }
 
 export interface RegionCustomerCount {

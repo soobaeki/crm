@@ -21,13 +21,28 @@ import {
   postUploadExcelApi,
 } from "@/lib/excel/excel.api";
 import { downloadExcel } from "@/utils/excel";
+import { formatNumber } from "@/utils/formatters";
 
 const rowDataColumns = [
   { key: "id", label: "순번", width: "70px" },
   { key: "orderDate", label: "주문일자", width: "120px" },
   { key: "item", label: "품목", width: "100px" },
-  { key: "weight", label: "무게", align: "right" as const, width: "70px" },
-  { key: "quantity", label: "수량", align: "right" as const, width: "70px" },
+  {
+    key: "weight",
+    label: "무게",
+    align: "right" as const,
+    width: "70px",
+    render: (row: RowData) =>
+      row.weight ? formatNumber(row.weight) + "kg" : "-",
+  },
+  {
+    key: "quantity",
+    label: "수량",
+    align: "right" as const,
+    width: "70px",
+    render: (row: RowData) =>
+      row.quantity ? formatNumber(row.quantity) + "개" : "-",
+  },
   { key: "address", label: "주소", align: "left" as const, width: "500px" },
   { key: "homePhone", label: "집전화", width: "200px" },
   { key: "mobilePhone", label: "휴대전화", width: "200px" },
@@ -37,6 +52,8 @@ const rowDataColumns = [
     label: "입금액",
     align: "right" as const,
     width: "120px",
+    render: (row: RowData) =>
+      row.paymentAmount ? formatNumber(row.paymentAmount) + "원" : "-",
   },
   {
     key: "paymentDate",

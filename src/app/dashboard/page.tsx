@@ -20,7 +20,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { CustomerIssue } from "@/types/customer";
+import { CustomerIssue, CustomerStats } from "@/types/customer";
 import { TodaysOrdersCustomers } from "@/types/order";
 import { Column } from "@/types/table";
 import ViewBody from "@/components/commons/ViewBody";
@@ -94,12 +94,12 @@ export default function DashBoardPage() {
     }
   }, [error]);
 
-  const { data: customerStats, isLoading } = useQuery<{
-    total: number;
-    recent30Days: number;
-  }>({
+  const { data: customerStats, isLoading } = useQuery<CustomerStats>({
     queryKey: ["customerStats"],
-    queryFn: getCustomerStats,
+    queryFn: async () => {
+      const response = await getCustomerStats();
+      return response as CustomerStats;
+    },
   });
 
   const { data: regionCounts } = useQuery<{ region: string; count: number }[]>({
@@ -201,26 +201,30 @@ export default function DashBoardPage() {
           {/* 전체 고객 수 */}
           <ViewCard
             title="전체 고객 수"
-            value={`${(customerStats?.total ?? 0).toLocaleString()}명`}
-            trend={2.5}
+            value={`${(customerStats?.customerTotal ?? 0).toLocaleString()}명`}
+            trend={customerStats?.customerTotalTrend ?? 0}
           />
 
           {/* 신규 고객 수 (최근 30일) */}
           <ViewCard
             title="신규 고객 수 (최근 30일)"
-            value={`${(customerStats?.recent30Days ?? 0).toLocaleString()}명`}
-            trend={10}
+            value={`${(customerStats?.customerRecent30Days ?? 0).toLocaleString()}명`}
+            trend={customerStats?.customerRecentTrend ?? 0}
           />
 
           {/* 재구매율 카드 예시 */}
-          <ViewCard title="재구매율" value="72%" trend={-1.2} />
+          <ViewCard
+            title="재구매율"
+            value={`${(customerStats?.retentionRate ?? 0).toLocaleString()}%`}
+            trend={customerStats?.retentionTrend ?? 0}
+          />
 
           {/* 기타 통계 카드 예시 */}
           <ViewCard
             title="오늘 주문 건수"
-            value="24건"
+            value={`${(customerStats?.todayOrderCount ?? 0).toLocaleString()}건`}
             trendLabel="어제 대비"
-            trend={4}
+            trend={customerStats?.orderTrend ?? 0}
           />
         </ViewRow>
         {/* 중간 차트 및 주요 지표 */}

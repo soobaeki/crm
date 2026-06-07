@@ -139,7 +139,7 @@ export default function SignupModal({
               onChange={handleChange}
               className="form-input w-full"
             >
-              <option value="admin">Admin (관리자)</option>
+              {/* <option value="admin">Admin (관리자)</option> */}
               <option value="guest">Guest (둘러보기)</option>
             </select>
           </div>

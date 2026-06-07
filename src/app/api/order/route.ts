@@ -87,35 +87,43 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const { orderId, orderData, itemsData } = (await request.json()) as {
-      orderId: number;
-      orderData: OrderFormInput;
-      itemsData: OrderItemFormInput[];
-    };
+    const body = await request.json();
+    const { orderData, itemsData } = body;
 
-    const updateOrders = await updateOrderWithItems(
-      orderId,
+    // 👑 [서버 터미널 확인용 로그] 도대체 프론트에서 뭐가 넘어오는지 범인을 잡습니다.
+    console.log("====== 🔥 백엔드 API에 들어온 원본 데이터 🔥 ======");
+    console.log("orderData전체:", orderData);
+    console.log("프론트가 준 orderData.id:", orderData?.id);
+    console.log("프론트가 준 orderData.customerId:", orderData?.customerId);
+    console.log("==================================================");
+
+    // 🚨 억까 방지용 강제 교통정리
+    // 만약 프론트가 id를 0이나 이상한 값으로 줬거나, customerId와 똑같이 줬다면 진짜 데이터에서 추출 시도
+    const realOrderId = Number(orderData.id);
+
+    if (!realOrderId || realOrderId === Number(orderData.customerId)) {
+      console.error(
+        "❌ 치명적 오류: 프론트가 준 주문 ID가 없거나 고객 ID와 동일합니다!",
+      );
+    }
+
+    // 배열 규격 강제 통일
+    const formattedItems = Array.isArray(itemsData) ? itemsData : [itemsData];
+
+    // 👑 확실하게 검증된 realOrderId를 넘깁니다.
+    const result = await updateOrderWithItems(
+      realOrderId,
       orderData,
-      itemsData,
+      formattedItems,
     );
 
-    const response: ApiResponse<typeof updateOrders> = {
-      success: true,
-      message: "주문 수정 성공했습니다.",
-      data: updateOrders,
-    };
-
-    return NextResponse.json(response, { status: 200 });
-  } catch (error) {
-    console.log(`[PUT] ${request.url} : `, error);
-
-    const response: ApiResponse<null> = {
-      success: false,
-      message: "주문 수정 실패했습니다.",
-      data: null,
-    };
-
-    return NextResponse.json(response, { status: 500 });
+    return NextResponse.json({ success: true, data: result });
+  } catch (error: any) {
+    console.error("PUT /api/order 에러 발생:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 },
+    );
   }
 }
 

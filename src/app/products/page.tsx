@@ -61,7 +61,7 @@ const productColumns = [
     align: "right",
     width: "100px",
     render: (row: Product) =>
-      row.stockQuantity ? formatNumber(row.stockQuantity) : "-",
+      row.stockQuantity ? formatNumber(row.stockQuantity) + "개" : "-",
   },
   {
     key: "isActive",
